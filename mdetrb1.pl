@@ -235,6 +235,40 @@ rmv_transp:-
     transp(Transp_name,Fact_name_i,Fact_name_f,Distance,Price),
     retract(transp(Transp_name,Fact_name_i,Fact_name_f,Distance,Price)).
 
+%------------------LIST REQUIRED PIECES------------------
+%RF5
+get_prod_reqs:-
+    read(Product),
+    prod(Product,_,_,Materials),
+    write(Materials).
+
+%------------------LIST FACTORIES WITH A PRODUCT------------------
+%RF6
+get_prod_from_fact:-
+    read(Product),
+    fact(Factory, Products),
+    is_member(Product,Products),
+    write(Factory),
+    nl,
+    fail;
+    true.
+
+%------------------LIST TRANSPORTS BETWEEN FACTORIES------------------
+
+get_transp_fact:-
+    write('Start point:'),
+    nl,
+    read(Fab1),
+    write('End point:'),
+    nl,
+    read(Fab2),
+    nl,
+    transp(Transport,Fab1,Fab2,_,_),
+    write(Transport),
+    nl,
+    fail;
+    true.
+
 %------------------MENU------------------
 
 readoption(O):-
