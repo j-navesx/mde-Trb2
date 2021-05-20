@@ -50,11 +50,11 @@ memorize_transp(_) :- write('=> Invalid Data').
 conc([], L, L).
 conc([C|R], L, [C|T]) :- conc(R, L, T).
 
-exists_factory(Fact_name):-
+exists_factory_AF(Fact_name):-
     fact(Fact_name,_),
     write('=> Factory Name Taken'),nl,
     new_fact.
-exists_factory(_).
+exists_factory_AF(_).
 
 single_read_string(Atom):-
     read_string(user_input,"\n","\r",_,Str),
@@ -75,26 +75,26 @@ process_fact_prods(Node,Prod_list,Prod):-
 new_fact:-
     write('Enter factory name: '),
     single_read_string(Node),
-    exists_factory(Node),
+    exists_factory_AF(Node),
     read_fact_prods_finish(Node,[]).
 
-%---------------ADD Prod desc---------------
+%-------------ADD PROD DESC--------------
 
 single_read_numb(Number):-
     read_string(user_input,"\n","\r",_,Str),
     string_to_atom(Str,Atom),
     atom_number(Atom,Number).
 
-valid_fact_name(Fact_name):-
+valid_fact_name_APD(Fact_name):-
     fact(Fact_name,_).
-valid_fact_name(_):-
+valid_fact_name_APD(_):-
     write('=> Invalid Factory Name'),nl,
     add_desc.
 
-valid_prod_name(Fact_name,Prod_name):-
+valid_prod_name_APD(Fact_name,Prod_name):-
     fact(Fact_name,Prod_list),
     is_member(Prod_name,Prod_list).
-valid_prod_name(_,_):-
+valid_prod_name_APD(_,_):-
     write('=> Invalid Product Name Or Product not in factory'),nl,
     add_desc.
 
@@ -116,15 +116,126 @@ process_prod_mat(Fact_name,Prod_name,Stock,Mat_list,Mat):-
 add_desc:-
     write('Enter factory name: '),
     single_read_string(Fact_name),
-    valid_fact_name(Fact_name),
+    valid_fact_name_APD(Fact_name),
     write('Enter product name: '),
     single_read_string(Prod_name),
-    valid_prod_name(Fact_name,Prod_name),
+    valid_prod_name_APD(Fact_name,Prod_name),
     write('Enter stock amount: '),
     single_read_numb(Stock),
     read_prods_mat_finish(Fact_name,Prod_name,Stock,[]).
 
-%------------------Menu------------------
+%-------------ADD PROD STOCK-------------
+
+add_stock(prod(Prod_name,Fact_name,Initial_stock,Mat_list),Stock):-
+    New_stock is Initial_stock + Stock,
+    retract(prod(Prod_name,Fact_name,Initial_stock,Mat_list)),
+    memorize_prod(prod(Prod_name,Fact_name,New_stock,Mat_list)).
+
+valid_fact_name_APS(Fact_name):-
+    fact(Fact_name,_).
+valid_fact_name_APS(_):-
+    write('=> Invalid Factory Name'),nl,
+    add_stock_menu.
+
+valid_prod_name_APS(Fact_name,Prod_name):-
+    fact(Fact_name,Prod_list),
+    is_member(Prod_name,Prod_list).
+valid_prod_name_APS(_,_):-
+    write('=> Invalid Product Name Or Product not in factory'),nl,
+    add_stock_menu.
+
+add_stock_menu:-
+    write('Enter factory name: '),
+    single_read_string(Fact_name),
+    valid_fact_name_APS(Fact_name),
+    write('Enter product name: '),
+    single_read_string(Prod_name),
+    valid_prod_name_APS(Fact_name,Prod_name),
+    write('Enter aditional stock amount: '),
+    single_read_numb(Stock),
+    prod(Prod_name,Fact_name,Initial_stock,Mat_list),
+    add_stock(prod(Prod_name,Fact_name,Initial_stock,Mat_list),Stock).
+
+%---------------ADD TRANSP---------------
+
+exists_travel(Transp_name,Fact_name_i,Fact_name_f):-
+    transp(Transp_name,Fact_name_i,Fact_name_f,_,_),
+    write('=> Cant have same travel from same transporter'),nl,
+    add_transp.
+exists_travel(_,_,_).
+
+valid_fact_name_AT(Fact_name):-
+    fact(Fact_name,_).
+valid_fact_name_AT(_):-
+    write('=> Invalid Factory Name'),nl,
+    add_transp.
+
+add_transp:-
+    write('Enter transporter name: '),
+    single_read_string(Transp_name),
+    write('Enter shipper factory name: '),
+    single_read_string(Fact_name_i),
+    valid_fact_name_AT(Fact_name_i),
+    write('Enter receiver factory name: '),
+    single_read_string(Fact_name_f),
+    valid_fact_name_AT(Fact_name_f),
+    exists_travel(Transp_name,Fact_name_i,Fact_name_f),
+    write('Enter travel distance: '),
+    single_read_numb(Distance),
+    write('Enter price per ton: '),
+    single_read_numb(Price),
+    memorize_transp(transp(Transp_name,Fact_name_i,Fact_name_f,Distance,Price)).
+
+%---------------RMV FACTORY---------------
+
+valid_fact_name_RF(Fact_name):-
+    fact(Fact_name,_).
+valid_fact_name_RF(_):-
+    write('=> Invalid Factory Name'),nl,
+    rmv_fact.
+
+rmv_fact:-
+    write('Enter factory name: '),
+    single_read_string(Fact_name),
+    valid_fact_name_RF(Fact_name),
+    fact(Fact_name,Prod_list),
+    retract(fact(Fact_name,Prod_list)).
+
+%-------------RMV PROD DESC--------------
+
+
+
+%-------------RMV PROD STOCK-------------
+
+
+
+%---------------RMV TRANSP---------------
+
+valid_travel(Transp_name,Fact_name_i,Fact_name_f):-
+    transp(Transp_name,Fact_name_i,Fact_name_f,_,_).
+valid_travel(_,_,_):-
+    write('=> Invalid Travel Data'),nl,
+    rmv_transp.
+
+valid_transp_name_RT(Transp_name):-
+    transp(Transp_name,_,_,_,_).
+valid_transp_name_RT(_):-
+    write('=> Transporter does not exist'),nl,
+    rmv_transp.
+
+rmv_transp:-
+    write('Enter transporter name: '),
+    single_read_string(Transp_name),
+    valid_transp_name_RT(Transp_name),
+    write('Enter shipper factory name: '),
+    single_read_string(Fact_name_i),
+    write('Enter receiver factory name: '),
+    single_read_string(Fact_name_f),
+    valid_travel(Transp_name,Fact_name_i,Fact_name_f),
+    transp(Transp_name,Fact_name_i,Fact_name_f,Distance,Price),
+    retract(transp(Transp_name,Fact_name_i,Fact_name_f,Distance,Price)).
+
+%------------------MENU------------------
 
 readoption(O):-
     get_single_char(C),
@@ -238,8 +349,12 @@ exec(4) :- abort.
 exec(11) :- 
     new_fact,
     menu_add.
-%exec(12) :- .
-%exec(13) :- .
+exec(12) :- 
+    add_stock_menu,
+    menu_add.
+exec(13) :- 
+    add_transp,
+    menu_add.
 exec(14) :- 
     add_desc,
     menu_add.
@@ -251,9 +366,13 @@ exec(15) :- menu_1.
 %exec(24) :- .
 exec(25) :- menu_1.
 
-%exec(21) :- .
-%exec(22) :- .
-%exec(23) :- .
-%exec(24) :- .
+exec(31) :- 
+    rmv_fact,
+    menu_rmv.
+%exec(32) :- .
+exec(33) :- 
+    rmv_transp,
+    menu_rmv.
+%exec(34) :- .
 exec(35) :- menu_1.
 

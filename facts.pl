@@ -7,4 +7,5 @@ fact(d, [motores1300diesel, motores2000gasolina]).
 fact(hallo, [prod1, prod2, prod3]).
 fact(fact1, [prod1, prod2, prod3]).
 fact(hallo, [prod1, prod2, prod3]).
+fact(fact, ['1', '2', '3']).
 
