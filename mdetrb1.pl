@@ -48,7 +48,13 @@ memorize_transp(_) :- write('=> Invalid Data').
 %new_fact :- read(S),memorize_fact(S).
 
 conc([], L, L).
-conc([C|R], L, [C|T]) :- conc(R, L, T). 
+conc([C|R], L, [C|T]) :- conc(R, L, T).
+
+exists_factory(Fact_name):-
+    fact(Fact_name,_),
+    write('=> Factory Name Taken'),nl,
+    new_fact.
+exists_factory(_).
 
 single_read_string(Atom):-
     read_string(user_input,"\n","\r",_,Str),
@@ -69,6 +75,7 @@ process_fact_prods(Node,Prod_list,Prod):-
 new_fact:-
     write('Enter factory name: '),
     single_read_string(Node),
+    exists_factory(Node),
     read_fact_prods_finish(Node,[]).
 
 %---------------ADD Prod desc---------------
