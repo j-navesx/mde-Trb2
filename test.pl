@@ -5,7 +5,7 @@ fact(b,[parabrisas,janelas]).
 fact(c,[jantesvw,portasvw,capovw,custombodywork]).
 fact(d,[motores1300diesel,motores2000gasolina]).
 
-%prod().
+%prod(prod_name,factory_name,stock_units,material_list).
 
 
 
@@ -53,8 +53,8 @@ menu_add :-
 
 add_menu(Op):-
     write('1 -> Adicionar fabricas a cadeia/rede'),nl,
-    write('2 -> Adicionar transportadores'),nl,
-    write('3 -> Adicionar stock a uma fabrica'),nl,
+    write('2 -> Adicionar stock a uma fabrica'),nl,
+    write('3 -> Adicionar transportadores'),nl,
     write('4 -> Adicionar descricao de produto'),nl,
     write('5 -> Exit'), nl,
     readoption(Op1),
