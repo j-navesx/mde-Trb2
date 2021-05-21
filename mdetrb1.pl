@@ -4,8 +4,6 @@ save_facts :- tell('facts.pl'),
             told.
 
 memorize_fact(fact(Node,Prod)) :- assertz(fact(Node,Prod)),
-                    nl,
-                    listing(fact),
                     save_facts.
 memorize_fact(_) :- write('=> Invalid Data').
 
@@ -19,8 +17,6 @@ save_prod :- tell('prods.pl'),
             told.
 
 memorize_prod(prod(Prod_name,Factory_name,Stock_units,Material_list)) :- assertz(prod(Prod_name,Factory_name,Stock_units,Material_list)),
-                    nl,
-                    listing(prod),
                     save_prod.
 memorize_prod(_) :- write('=> Invalid Data').
 
@@ -35,8 +31,6 @@ save_transps :- tell('transps.pl'),
 
 
 memorize_transp(transp(Name,Fact1,Fact2,Dist,Cost)) :- assertz(transp(Name,Fact1,Fact2,Dist,Cost)),
-                    nl,
-                    listing(transp),
                     save_transps.
 memorize_transp(_) :- write('=> Invalid Data').
 
@@ -133,16 +127,19 @@ add_stock(prod(Prod_name,Fact_name,Initial_stock,Mat_list),Stock):-
 
 valid_fact_name_APS(Fact_name):-
     fact(Fact_name,_).
-valid_fact_name_APS(_):-
+valid_fact_name_APS(Fact_name):-
+    not(fact(Fact_name,_)),
     write('=> Invalid Factory Name'),nl,
-    add_stock_menu.
+    fail.
 
 valid_prod_name_APS(Fact_name,Prod_name):-
     fact(Fact_name,Prod_list),
     is_member(Prod_name,Prod_list).
-valid_prod_name_APS(_,_):-
+valid_prod_name_APS(Fact_name,Prod_name):-
+    fact(Fact_name,Prod_list),
+    not(is_member(Prod_name,Prod_list)),
     write('=> Invalid Product Name Or Product not in factory'),nl,
-    add_stock_menu.
+    fail.
 
 add_stock_menu:-
     write('Enter factory name: '),
@@ -155,6 +152,8 @@ add_stock_menu:-
     single_read_numb(Stock),
     prod(Prod_name,Fact_name,Initial_stock,Mat_list),
     add_stock(prod(Prod_name,Fact_name,Initial_stock,Mat_list),Stock).
+add_stock_menu:-
+    add_stock_menu.
 
 %---------------ADD TRANSP---------------
 
@@ -238,14 +237,14 @@ rmv_transp:-
 %------------------LIST REQUIRED PIECES------------------
 %RF5
 get_prod_reqs:-
-    read(Product),
+    single_read_string(Product),
     prod(Product,_,_,Materials),
     write(Materials).
 
 %------------------LIST FACTORIES WITH A PRODUCT------------------
 %RF6
 get_prod_from_fact:-
-    read(Product),
+    single_read_string(Product),
     fact(Factory, Products),
     is_member(Product,Products),
     write(Factory),
@@ -257,15 +256,11 @@ get_prod_from_fact:-
 
 get_transp_fact:-
     write('Start point:'),
-    nl,
-    read(Fab1),
+    single_read_string(Fab1),
     write('End point:'),
-    nl,
-    read(Fab2),
-    nl,
+    single_read_string(Fab2),
     transp(Transport,Fab1,Fab2,_,_),
     write(Transport),
-    nl,
     fail;
     true.
 
