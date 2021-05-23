@@ -1,7 +1,6 @@
-:- dynamic transp/5.
+:- dynamic transp/2.
 
-transp(transp1, a, b, 50, 0.1).
-transp(transp2, b, c, 20, 0.2).
-transp(ups, hallo, a, 500, 20).
-transp(ips, a, c, 20, 0.3).
+%transp(transpname, [transp_type, (Km/h)med, Emitions/Km, price/Km]).
 
+transp(transp1, [[ship1, 90, 80, 50]]).
+transp(transp2, [[ship2, 70, 40, 60],[plane1, 250, 60, 110]]).

@@ -30,11 +30,25 @@ save_transps :- tell('transps.pl'),
             told.
 
 
-memorize_transp(transp(Name,Fact1,Fact2,Dist,Cost)) :- assertz(transp(Name,Fact1,Fact2,Dist,Cost)),
+memorize_transp(transp(Name,Transp_desc)) :- assertz(transp(Name,Transp_desc)),
                     save_transps.
 memorize_transp(_) :- write('=> Invalid Data').
 
-:- dynamic transp/5.
+:- dynamic transp/2.
+:- consult('transps.pl').
+:- write('Loaded:'), listing(transp).
+
+%---------------TRANSPORT---------------
+save_transps :- tell('transps.pl'),
+            listing(transp),
+            told.
+
+
+memorize_transp(transp(Name,Fact1,Fact2,Dist,Speed,Emitions)) :- assertz(transp(Name,Fact1,Fact2,Dist,Speed,Emitions)),
+                    save_transps.
+memorize_transp(_) :- write('=> Invalid Data').
+
+:- dynamic transp/6.
 :- consult('transps.pl').
 :- write('Loaded:'), listing(transp).
 
@@ -158,8 +172,8 @@ add_stock_menu:-
 %---------------ADD TRANSP---------------
 
 exists_travel(Transp_name,Fact_name_i,Fact_name_f):-
-    transp(Transp_name,Fact_name_i,Fact_name_f,_,_),
-    write('=> Cant have same travel from same transporter'),nl,
+    transp(Transp_name,Fact_name_i,Fact_name_f,_,_,_),
+    write('=> Cant have same route from same transporter'),nl,
     add_transp.
 exists_travel(_,_,_).
 
@@ -275,7 +289,7 @@ readoption(O):-
 readoption(O):-
     readoption(O).
 
-valid(O):- O >=1, O=<5.
+valid(O):- O >=1, O=<6.
 
 menu_1 :- 
     nl,
@@ -299,11 +313,12 @@ menu_add :-
     execute(Op).
 
 add_menu(Op):-
-    write('1 -> Adicionar fabricas a cadeia/rede'),nl,
+    write('1 -> Adicionar fabrica a cadeia/rede'),nl,
     write('2 -> Adicionar stock a uma fabrica'),nl,
-    write('3 -> Adicionar transportadores'),nl,
-    write('4 -> Adicionar descricao de produto'),nl,
-    write('5 -> Exit'), nl,
+    write('3 -> Adicionar transportador'),nl,
+    write('4 -> Adicionar rota a transportador'),nl,
+    write('5 -> Adicionar descricao a um produto'),nl,
+    write('6 -> Exit'), nl,
     readoption(Op1),
     Op is Op1 + 10.
 
@@ -315,11 +330,12 @@ menu_alter :-
     execute(Op).
 
 alter_menu(Op):-
-    write('1 -> Alterar fabricas da cadeia/rede'),nl,
+    write('1 -> Alterar fabrica da cadeia/rede'),nl,
     write('2 -> Alterar stock numa fabrica'),nl,
-    write('3 -> Alterar transportadores'),nl,
-    write('4 -> Alterar descricao de produto'),nl,
-    write('5 -> Exit'), nl,
+    write('3 -> Alterar informacao de transportador'),nl,
+    write('4 -> Alterar informacao de rota'),nl,
+    write('5 -> Alterar descricao a um produto'),nl,
+    write('6 -> Exit'), nl,
     readoption(Op1),
     Op is Op1 + 20.
 
@@ -331,11 +347,12 @@ menu_rmv :-
     execute(Op).
 
 rmv_menu(Op):-
-    write('1 -> Remover fabricas da cadeia/rede'),nl,
+    write('1 -> Remover fabrica da cadeia/rede'),nl,
     write('2 -> Remover stock numa fabrica'),nl,
-    write('3 -> Remover transportadores'),nl,
-    write('4 -> Remover descricao de produto'),nl,
-    write('5 -> Exit'), nl,
+    write('3 -> Remover transportador'),nl,
+    write('4 -> Remover rota de um transportador'),nl,
+    write('5 -> Remover descricao de produto'),nl,
+    write('6 -> Exit'), nl,
     readoption(Op1),
     Op is Op1 + 30.
 
@@ -384,16 +401,22 @@ exec(12) :-
 exec(13) :- 
     add_transp,
     menu_add.
-exec(14) :- 
+%exec(14) :- 
+%    add_route,
+%    menu_add.
+exec(15) :- 
     add_desc,
     menu_add.
-exec(15) :- menu_1.
+exec(16) :- menu_1.
 
 %exec(21) :- add_menu(Op).
 %exec(22) :- .
 %exec(23) :- .
-%exec(24) :- .
-exec(25) :- menu_1.
+%exec(24) :- 
+%    alter_route,
+%    menu_add.
+%exec(25) :- .
+exec(26) :- menu_1.
 
 exec(31) :- 
     rmv_fact,
@@ -402,6 +425,9 @@ exec(31) :-
 exec(33) :- 
     rmv_transp,
     menu_rmv.
-%exec(34) :- .
-exec(35) :- menu_1.
+%exec(34) :- 
+%    rmv_route,
+%    menu_add.
+%exec(35) :- .
+exec(36) :- menu_1.
 

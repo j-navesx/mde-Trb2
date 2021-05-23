@@ -7,12 +7,16 @@ fact(d,[motores1300diesel,motores2000gasolina]).
 
 %prod(prod_name,factory_name,stock_units,material_list).
 
+%route(transpname, transp_type, fact1, fact2, dist(Km))
 
+route(transp1, ship1, a, b, 500).
+route(transp2, ship2, a, b, 500).
+route(transp2, plane1, b, c, 600).
 
-%transp(transpname, fact1, fact2, dist, cost).
+%transp(transpname, [transp_type, (Km/h)med, Emitions/Km, price/Km]).
 
-transp(transp1, a, b, 50, 0.1).
-transp(transp2, b, c, 20, 0.2).
+transp(transp1, [[ship1, 90, 80, 50]]).
+transp(transp2, [[ship2, 70, 40, 60],[plane1, 250, 60, 110]]).
 
 %--------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -145,3 +149,5 @@ exec(25) :- menu_1.
 %exec(3) :- removeFact.
 %exec(4) :- removeFact.
 exec(35) :- menu_1.
+
+
