@@ -1,4 +1,4 @@
-:- dynamic transp/5.
+:- dynamic route/5.
 
 %route(transpname, transp_type, fact1, fact2, dist(Km))
 

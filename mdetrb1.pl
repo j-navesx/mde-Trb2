@@ -38,19 +38,19 @@ memorize_transp(_) :- write('=> Invalid Data').
 :- consult('transps.pl').
 :- write('Loaded:'), listing(transp).
 
-%---------------TRANSPORT---------------
-save_transps :- tell('transps.pl'),
-            listing(transp),
+%-----------------Route-----------------
+save_transps :- tell('route.pl'),
+            listing(route),
             told.
 
 
-memorize_transp(transp(Name,Fact1,Fact2,Dist,Speed,Emitions)) :- assertz(transp(Name,Fact1,Fact2,Dist,Speed,Emitions)),
+memorize_transp(route(Name,Transp_type,Fact1,Fact2,Dist)) :- assertz(route(Name,Transp_type,Fact1,Fact2,Dist)),
                     save_transps.
 memorize_transp(_) :- write('=> Invalid Data').
 
-:- dynamic transp/6.
-:- consult('transps.pl').
-:- write('Loaded:'), listing(transp).
+:- dynamic route/5.
+:- consult('route.pl').
+:- write('Loaded:'), listing(route).
 
 %---------------ADD FACTORY---------------
 %new_fact :- read(S),memorize_fact(S).
@@ -171,15 +171,33 @@ add_stock_menu:-
 
 %---------------ADD TRANSP---------------
 
+exists_transp(Transp_name,Fact_name_i,Fact_name_f):-
+    transp(Transp_name,Fact_name_i,Fact_name_f,_,_,_),
+    write('=> Cant have same route from same transporter'),nl,
+    add_transp.
+exists_travel(_,_,_).
+
+add_transp:-
+    write('Enter transporter name: '),
+    single_read_string(Transp_name),
+    exists_travel(Transp_name,Fact_name_i,Fact_name_f),
+    write('Enter travel distance: '),
+    single_read_numb(Distance),
+    write('Enter price per ton: '),
+    single_read_numb(Price),
+    memorize_transp(transp(Transp_name,Fact_name_i,Fact_name_f,Distance,Price)).
+
+%---------------ADD ROUTE---------------
+
 exists_travel(Transp_name,Fact_name_i,Fact_name_f):-
     transp(Transp_name,Fact_name_i,Fact_name_f,_,_,_),
     write('=> Cant have same route from same transporter'),nl,
     add_transp.
 exists_travel(_,_,_).
 
-valid_fact_name_AT(Fact_name):-
+valid_fact_name_AR(Fact_name):-
     fact(Fact_name,_).
-valid_fact_name_AT(_):-
+valid_fact_name_AR(_):-
     write('=> Invalid Factory Name'),nl,
     add_transp.
 
@@ -188,10 +206,10 @@ add_transp:-
     single_read_string(Transp_name),
     write('Enter shipper factory name: '),
     single_read_string(Fact_name_i),
-    valid_fact_name_AT(Fact_name_i),
+    valid_fact_name_AR(Fact_name_i),
     write('Enter receiver factory name: '),
     single_read_string(Fact_name_f),
-    valid_fact_name_AT(Fact_name_f),
+    valid_fact_name_AR(Fact_name_f),
     exists_travel(Transp_name,Fact_name_i,Fact_name_f),
     write('Enter travel distance: '),
     single_read_numb(Distance),
