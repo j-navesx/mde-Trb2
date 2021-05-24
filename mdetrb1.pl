@@ -408,8 +408,20 @@ alter_prod_menu:-
 %RF5
 get_prod_reqs:-
     single_read_string(Product),
+
+    findall((Materials),
     prod(Product,_,_,Materials),
-    write(Materials).
+    List),
+    
+    forall((member((Materials), List)), 
+        (forall((member((Material), Materials)),
+                (   [Name, Quantity] = Material,
+                    format('~w: ~w~n',[Name, Quantity])
+                )
+            )
+        )
+    ).
+    
 
 %------------------LIST FACTORIES WITH A PRODUCT------------------
 %RF6
