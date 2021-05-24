@@ -291,44 +291,74 @@ get_transp_fact:-
     single_read_string(Fab1),
     write('End point:'),
     single_read_string(Fab2),
-    route(Transport,_,Fab1,Fab2,_),
-    write(Transport),
+    findall((Transport,Method), 
+        (route(Transport,Method,Fab1,Fab2,_)), 
+        List),
     nl,
-    fail;
-    true.
+    forall(member((Transport,Method), List), 
+        format('~w: ~w ~w -> ~w~n',
+            [   Fab1, 
+                Transport,
+                Method,
+                Fab2
+            ])
+    ).
 
 %------------------LIST TRANSPORTS BETWEEN FACTORIES THROUGH OTHER FACTORIES------------------
 
-get_transp_m_facts:-
-    write('Start point:'),
-    single_read_string(Fab1),
-    write('End point:'),
-    single_read_string(Fab2),
-    route(Transport,Method,Fab1,FabX,_),
-    route(Transport2,Method2,FabX,Fab2,_),
-    nl,
-    write(Transport), write(' '), write(Method),
-    write(' '), write('->'), write(' '),
-    write(Transport2), write(' '), write(Method2),
-    fail;
-    true.
 
-get_transp_m_facts:-
+get_2transp_m_facts:-
     write('Start point:'),
     single_read_string(Fab1),
     write('End point:'),
     single_read_string(Fab2),
-    route(Transport,Method,Fab1,FabX,_),
-    route(Transport2,Method2,FabX,FabY,_)
-    route(Transport3,Method3,FabY,Fab2,_),
+    findall((Transport,Method,FabX,Transport2,Method2), 
+        (route(Transport,Method,Fab1,FabX,_),
+        route(Transport2,Method2,FabX,Fab2,_)), 
+        List),
     nl,
-    write(Transport), write(' '), write(Method),
-    write(' '), write('->'), write(' '),
-    write(Transport2), write(' '), write(Method2),
-    write(' '), write('->'), write(' '),
-    write(Transport3), write(' '), write(Method3),
-    fail;
-    true.
+    forall(member((Transport,Method,FabX,Transport2,Method2), List), 
+       format('~w: ~w ~w -> ~w: ~w ~w -> ~w~n',
+            [   Fab1, 
+                Transport,
+                Method,
+                FabX,
+                Transport2,
+                Method2,
+                Fab2
+            ])
+    ).
+
+
+get_3transp_m_facts:-
+    write('Start point:'),
+    single_read_string(Fab1),
+    write('End point:'),
+    single_read_string(Fab2),
+    
+    findall((Transport,Method,FabX,Transport2,Method2,FabY,Transport3,Method3), 
+        (route(Transport,Method,Fab1,FabX,_),
+        route(Transport2,Method2,FabX,FabY,_),
+        route(Transport3,Method3,FabY,Fab2,_)), 
+        List),
+    nl,
+    forall(member((Transport,Method,FabX,Transport2,Method2,FabY,Transport3,Method3), List), 
+       format('~w: ~w ~w -> ~w: ~w ~w -> ~w: ~w ~w -> ~w~n',
+            [   Fab1, 
+                Transport,
+                Method,
+                FabX,
+                Transport2,
+                Method2,
+                FabY,
+                Transport3,
+                Method3,
+                Fab2
+            ])
+    ).
+
+
+
 
 %------------------MENU------------------
 
