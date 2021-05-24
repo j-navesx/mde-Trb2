@@ -291,8 +291,42 @@ get_transp_fact:-
     single_read_string(Fab1),
     write('End point:'),
     single_read_string(Fab2),
-    transp(Transport,Fab1,Fab2,_,_),
+    route(Transport,_,Fab1,Fab2,_),
     write(Transport),
+    nl,
+    fail;
+    true.
+
+%------------------LIST TRANSPORTS BETWEEN FACTORIES THROUGH OTHER FACTORIES------------------
+
+get_transp_m_facts:-
+    write('Start point:'),
+    single_read_string(Fab1),
+    write('End point:'),
+    single_read_string(Fab2),
+    route(Transport,Method,Fab1,FabX,_),
+    route(Transport2,Method2,FabX,Fab2,_),
+    nl,
+    write(Transport), write(' '), write(Method),
+    write(' '), write('->'), write(' '),
+    write(Transport2), write(' '), write(Method2),
+    fail;
+    true.
+
+get_transp_m_facts:-
+    write('Start point:'),
+    single_read_string(Fab1),
+    write('End point:'),
+    single_read_string(Fab2),
+    route(Transport,Method,Fab1,FabX,_),
+    route(Transport2,Method2,FabX,FabY,_)
+    route(Transport3,Method3,FabY,Fab2,_),
+    nl,
+    write(Transport), write(' '), write(Method),
+    write(' '), write('->'), write(' '),
+    write(Transport2), write(' '), write(Method2),
+    write(' '), write('->'), write(' '),
+    write(Transport3), write(' '), write(Method3),
     fail;
     true.
 
