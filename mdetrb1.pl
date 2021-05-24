@@ -359,7 +359,7 @@ get_3transp_m_facts:-
                 Fab2
             ])
     ).
-
+%------------------GET MINIMUM TRANSPORT TO FACTORY------------------
 
 
 
