@@ -262,7 +262,8 @@ rmv_transp:-
     single_read_string(Transp_name),
     valid_transp_name(Transp_name),
     retract(transp(Transp_name,_)),
-    retract(route(Transp_name,_,_,_,_)).
+    findall((route(Transp_name,_,_,_,_)), (route(Transp_name,_,_,_,_)), List),
+    forall(member(route(Transp_name,_,_,_,_),List),(retract(route(Transp_name,_,_,_,_)))).
 rmv_transp:-
     rmv_transp.
 
