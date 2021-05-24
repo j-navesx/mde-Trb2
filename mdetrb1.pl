@@ -276,13 +276,15 @@ get_prod_reqs:-
 %------------------LIST FACTORIES WITH A PRODUCT------------------
 %RF6
 get_prod_from_fact:-
+    write('Insert Product to search:'),
     single_read_string(Product),
-    fact(Factory, Products),
-    is_member(Product,Products),
-    write(Factory),
+    findall((Factory), 
+        (fact(Factory, Products),
+        is_member(Product,Products)), 
+        List),
     nl,
-    fail;
-    true.
+    forall(member((Transport), List), 
+        format('~w~n',[Transport])).
 
 %------------------LIST TRANSPORTS BETWEEN FACTORIES------------------
 
