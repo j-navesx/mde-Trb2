@@ -212,7 +212,7 @@ add_transp:-
     write('Enter transporter name: '),
     single_read_string(Transp_name),
     exists_transp(Transp_name),
-    read_transp_type_finish(Transp_name,Transp_list).
+    read_transp_type_finish(Transp_name,[]).
 add_transp:-
     add_transp.
 
