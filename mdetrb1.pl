@@ -45,8 +45,8 @@ valid_prod_name(_,_):-
 is_member(E, [E|_]).
 is_member(E, [_|R]) :- is_member(E,R).
 
-exists_travel(Transp_name,Fact_name_i,Fact_name_f):-
-    route(Transp_name,Fact_name_i,Fact_name_f,_,_)
+exists_route(Transp_name,Transp_type,Fact_name_i,Fact_name_f):-
+    route(Transp_name,Transp_type,Fact_name_i,Fact_name_f,_)
     ->
     write('=> Cant have same route from same transporter'),nl,
     fail
@@ -57,6 +57,12 @@ valid_transp_name(Transp_name):-
     transp(Transp_name,_).
 valid_transp_name(_):-
     write('=> Transporter does not exist'),nl,
+    fail.
+
+valid_route(Transp_name,Transp_type,Fact_name_i,Fact_name_f):-
+    route(Transp_name,Transp_type,Fact_name_i,Fact_name_f,_).
+valid_route(_):-
+    write('=> Route invalid'),nl,
     fail.
 
 %---------------FACTORY---------------
@@ -150,7 +156,7 @@ process_prod_mat(Fact_name,Prod_name,Stock,Mat_list,Mat):-
     conc(Mat_list,[Mat],Mat_list1),
     read_prods_mat_finish(Fact_name,Prod_name,Stock,Mat_list1).
 
-add_desc:-
+add_prod_desc:-
     write('Enter factory name: '),
     single_read_string(Fact_name),
     valid_fact_name(Fact_name),
@@ -160,8 +166,8 @@ add_desc:-
     write('Enter stock amount: '),
     single_read_numb(Stock),
     read_prods_mat_finish(Fact_name,Prod_name,Stock,[]).
-add_desc:-
-    add_desc.
+add_prod_desc:-
+    add_prod_desc.
 
 %-------------ADD PROD STOCK-------------
 
@@ -221,18 +227,18 @@ add_transp:-
 add_route:-
     write('Enter transporter name: '),
     single_read_string(Transp_name),
+    write('Enter transport method name: '),
+    single_read_string(Transp_type),
     write('Enter shipper factory name: '),
     single_read_string(Fact_name_i),
     valid_fact_name(Fact_name_i),
     write('Enter receiver factory name: '),
     single_read_string(Fact_name_f),
     valid_fact_name(Fact_name_f),
-    exists_travel(Transp_name,Fact_name_i,Fact_name_f),
+    exists_route(Transp_name,Transp_type,Fact_name_i,Fact_name_f),
     write('Enter travel distance: '),
     single_read_numb(Distance),
-    write('Enter price per ton: '),
-    single_read_numb(Price),
-    memorize_transp(transp(Transp_name,Fact_name_i,Fact_name_f,Distance,Price)).
+    memorize_route(route(Transp_name,Transp_type,Fact_name_i,Fact_name_f,Distance)).
 add_route:-
     add_route.
 
@@ -249,11 +255,37 @@ rmv_fact:-
 
 %-------------RMV PROD DESC--------------
 
-
+rmv_prod_desc:-
+    write('Enter factory name: '),
+    single_read_string(Fact_name),
+    valid_fact_name(Fact_name),
+    write('Enter product name: '),
+    single_read_string(Prod_name),
+    valid_prod_name(Fact_name,Prod_name),
+    retract(prod(Prod_name,Fact_name,_,_)).
+rmv_prod_desc:-
+    rmv_prod_desc.
 
 %-------------RMV PROD STOCK-------------
 
+subtract_stock(prod(Prod_name,Fact_name,Initial_stock,Mat_list),Stock):-
+    New_stock is Initial_stock - Stock,
+    retract(prod(Prod_name,Fact_name,Initial_stock,Mat_list)),
+    memorize_prod(prod(Prod_name,Fact_name,New_stock,Mat_list)).
 
+subtract_stock_menu:-
+    write('Enter factory name: '),
+    single_read_string(Fact_name),
+    valid_fact_name(Fact_name),
+    write('Enter product name: '),
+    single_read_string(Prod_name),
+    valid_prod_name(Fact_name,Prod_name),
+    write('Enter stock amount to remove: '),
+    single_read_numb(Stock),
+    prod(Prod_name,Fact_name,Initial_stock,Mat_list),
+    subtract_stock(prod(Prod_name,Fact_name,Initial_stock,Mat_list),Stock).
+subtract_stock_menu:-
+    subtract_stock_menu.
 
 %---------------RMV TRANSP---------------
 
@@ -266,6 +298,24 @@ rmv_transp:-
     forall(member(route(Transp_name,_,_,_,_),List),(retract(route(Transp_name,_,_,_,_)))).
 rmv_transp:-
     rmv_transp.
+
+%---------------RMV ROUTE---------------
+
+rmv_route:-
+    write('Enter transporter name: '),
+    single_read_string(Transp_name),
+    write('Enter transport method name: '),
+    single_read_string(Transp_type),
+    write('Enter shipper factory name: '),
+    single_read_string(Fact_name_i),
+    valid_fact_name(Fact_name_i),
+    write('Enter receiver factory name: '),
+    single_read_string(Fact_name_f),
+    valid_fact_name(Fact_name_f),
+    valid_route(Transp_name,Transp_type,Fact_name_i,Fact_name_f),
+    retract(route(Transp_name,Transp_type,Fact_name_i,Fact_name_f,_)).
+rmv_route:-
+    rmv_route.
 
 %------------------LIST REQUIRED PIECES------------------
 %RF5
@@ -486,11 +536,11 @@ exec(12) :-
 exec(13) :- 
     add_transp,
     menu_add.
-%exec(14) :- 
-%    add_route,
-%    menu_add.
+exec(14) :- 
+    add_route,
+    menu_add.
 exec(15) :- 
-    add_desc,
+    add_prod_desc,
     menu_add.
 exec(16) :- menu_1.
 
@@ -506,13 +556,17 @@ exec(26) :- menu_1.
 exec(31) :- 
     rmv_fact,
     menu_rmv.
-%exec(32) :- .
+exec(32) :- 
+    subtract_stock_menu,
+    menu_add.
 exec(33) :- 
     rmv_transp,
     menu_rmv.
-%exec(34) :- 
-%    rmv_route,
-%    menu_add.
-%exec(35) :- .
+exec(34) :- 
+    rmv_route,
+    menu_add.
+exec(35) :- 
+    rmv_prod_desc,
+    menu_add.
 exec(36) :- menu_1.
 
