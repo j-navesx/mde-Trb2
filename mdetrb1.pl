@@ -30,14 +30,16 @@ single_read_numb(Number):-
     atom_number(Atom,Number).
 
 valid_fact_name(Fact_name):-
-    fact(Fact_name,_).
+    fact(Fact_name,_),
+    !.
 valid_fact_name(_):-
     write('=> Invalid Factory Name'),nl,
     fail.
 
 valid_prod_name(Fact_name,Prod_name):-
     fact(Fact_name,Prod_list),
-    is_member(Prod_name,Prod_list).
+    is_member(Prod_name,Prod_list),
+    !.
 valid_prod_name(_,_):-
     write('=> Invalid Product Name Or Product not in factory'),nl,
     fail.
@@ -54,13 +56,15 @@ exists_route(Transp_name,Transp_type,Fact_name_i,Fact_name_f):-
     true.
 
 valid_transp_name(Transp_name):-
-    transp(Transp_name,_).
+    transp(Transp_name,_),
+    !.
 valid_transp_name(_):-
     write('=> Transporter does not exist'),nl,
     fail.
 
 valid_route(Transp_name,Transp_type,Fact_name_i,Fact_name_f):-
-    route(Transp_name,Transp_type,Fact_name_i,Fact_name_f,_).
+    route(Transp_name,Transp_type,Fact_name_i,Fact_name_f,_),
+    !.
 valid_route(_):-
     write('=> Route invalid'),nl,
     fail.
@@ -153,7 +157,10 @@ process_prod_mat(Fact_name,Prod_name,Stock,Mat_list,stop):-
     memorize_prod(prod(Prod_name,Fact_name,Stock,Mat_list)).
 process_prod_mat(Fact_name,Prod_name,Stock,Mat_list,Mat):-
     dif(Mat, stop),
-    conc(Mat_list,[Mat],Mat_list1),
+    write('Enter necessary material amount: '),
+    single_read_numb(Amount),
+    conc([Mat],[Amount],Mat_tuple),
+    conc(Mat_list,[Mat_tuple],Mat_list1),
     read_prods_mat_finish(Fact_name,Prod_name,Stock,Mat_list1).
 
 add_prod_desc:-
@@ -317,6 +324,86 @@ rmv_route:-
 rmv_route:-
     rmv_route.
 
+%---------------ALTER FACTORY---------------
+
+alter_fact(Fact_name,New_Prod_List):-
+    retract(fact(Fact_name,_)),
+    memorize_fact(fact(Fact_name,New_Prod_List)).
+
+process_option_AF(Fact_name, Prod_list, 1):-
+    write('Enter new product name: '),
+    single_read_string(New_Prod),
+    conc(Prod_list, [New_Prod], New_Prod_List),
+    alter_fact(Fact_name,New_Prod_List).
+
+process_option_AF(Fact_name, Prod_list, 2):-
+    write('Enter product name to remove: '),
+    single_read_string(Rmv_Prod),
+    valid_prod_name(Fact_name,Rmv_Prod),
+    delete(Prod_list,Rmv_Prod,New_Prod_List),
+    alter_fact(Fact_name,New_Prod_List).
+
+alter_fact_menu:-
+    write('Enter factory name: '),
+    single_read_string(Fact_name),
+    valid_fact_name(Fact_name),
+    write('1 -> Add factory product'),nl,
+    write('2 -> Remove factory product'),nl,
+    readoption(OP),
+    fact(Fact_name,Prod_list),
+    process_option_AF(Fact_name, Prod_list, OP).
+alter_fact_menu:-
+    alter_fact_menu.
+
+%-------------ALTER PROD DESC--------------
+
+alter_prod(Prod_name,Fact_name,Stock,Mat_list,New_Mat_list):-
+    retract(prod(Prod_name,Fact_name,Stock,Mat_list)),
+    memorize_prod(prod(Prod_name,Fact_name,Stock,New_Mat_list)).
+
+process_option_APD(Prod_name,Fact_name,Stock,Mat_list, 1):-
+    write('Enter new material name: '),
+    single_read_string(New_mat),
+    write('Enter necessary material amount: '),
+    single_read_numb(Amount),
+    conc([New_mat],[Amount],Mat_tuple),
+    conc(Mat_list,[Mat_tuple],New_Mat_list),
+    alter_prod(Prod_name,Fact_name,Stock,Mat_list,New_Mat_list).
+
+process_option_APD(Prod_name,Fact_name,Stock,Mat_list, 2):-
+    write('Enter material name to remove: '),
+    single_read_string(Rmv_Mat),
+    is_member(Mat_list,[Rmv_Mat,_]),
+    delete(Mat_list,[Rmv_Mat,_],New_Mat_list),
+    alter_prod(Prod_name,Fact_name,Stock,Mat_list,New_Mat_list).
+
+alter_prod_menu:-
+    write('Enter factory name: '),
+    single_read_string(Fact_name),
+    valid_fact_name(Fact_name),
+    write('Enter product name: '),
+    single_read_string(Prod_name),
+    valid_prod_name(Fact_name,Prod_name),
+    write('1 -> Add product material'),nl,
+    write('2 -> Remove product material'),nl,
+    readoption(OP),
+    prod(Prod_name,Fact_name,Stock,Mat_list),
+    process_option_APD(Prod_name,Fact_name,Stock,Mat_list,OP).
+alter_prod_menu:-
+    alter_prod_menu.
+
+%-------------ALTER PROD STOCK-------------
+
+
+
+%---------------ALTER TRANSP---------------
+
+
+
+%---------------ALTER ROUTE---------------
+
+
+
 %------------------LIST REQUIRED PIECES------------------
 %RF5
 get_prod_reqs:-
@@ -420,7 +507,8 @@ readoption(O):-
     put_code(C),
     number_codes(O,[C]), 
     valid(O),
-    nl.
+    nl,
+    !.
 readoption(O):-
     readoption(O).
 
@@ -544,13 +632,15 @@ exec(15) :-
     menu_add.
 exec(16) :- menu_1.
 
-%exec(21) :- add_menu(Op).
+exec(21) :- 
+    alter_fact_menu,
+    menu_alter.
 %exec(22) :- .
 %exec(23) :- .
-%exec(24) :- 
-%    alter_route,
-%    menu_add.
-%exec(25) :- .
+%exec(24) :- .
+exec(25) :-
+    alter_prod_menu,
+    menu_alter.
 exec(26) :- menu_1.
 
 exec(31) :- 
@@ -558,15 +648,15 @@ exec(31) :-
     menu_rmv.
 exec(32) :- 
     subtract_stock_menu,
-    menu_add.
+    menu_rmv.
 exec(33) :- 
     rmv_transp,
     menu_rmv.
 exec(34) :- 
     rmv_route,
-    menu_add.
+    menu_rmv.
 exec(35) :- 
     rmv_prod_desc,
-    menu_add.
+    menu_rmv.
 exec(36) :- menu_1.
 

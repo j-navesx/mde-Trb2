@@ -5,7 +5,7 @@ fact(b,[parabrisas,janelas]).
 fact(c,[jantesvw,portasvw,capovw,custombodywork]).
 fact(d,[motores1300diesel,motores2000gasolina]).
 
-%prod(prod_name,factory_name,stock_units,material_list).
+%prod(prod_name,factory_name,stock_units,material_list[ material_name, amount]).
 
 %route(transpname, transp_type, fact1, fact2, dist(Km))
 
