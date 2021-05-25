@@ -69,6 +69,14 @@ valid_route(_):-
     write('=> Route invalid'),nl,
     fail.
 
+fail_if_member(List,Element):-
+    is_member(Element,List)
+    -> 
+    write('=> Element already in list'),nl,
+    fail
+    ;
+    true.
+
 %---------------FACTORY---------------
 save_facts :- tell('facts.pl'),
             listing(fact),
@@ -256,7 +264,13 @@ rmv_fact:-
     single_read_string(Fact_name),
     valid_fact_name(Fact_name),
     fact(Fact_name,Prod_list),
-    retract(fact(Fact_name,Prod_list)).
+    retract(fact(Fact_name,Prod_list)),
+    ((findall((route(_,_,Fact_name,_,_)), (route(_,_,Fact_name,_,_)), List1),
+    forall(member(route(_,_,Fact_name,_,_),List1),(retract(route(_,_,Fact_name,_,_)))));true),
+    ((findall((route(_,_,_,Fact_name,_)), (route(_,_,_,Fact_name,_)), List2),
+    forall(member(route(_,_,_,Fact_name,_),List2),(retract(route(_,_,_,Fact_name,_)))));true),
+    ((findall((prod(_,Fact_name,_,_)), (prod(_,Fact_name,_,_)), List3),
+    forall(member(prod(_,Fact_name,_,_),List3),(retract(prod(_,Fact_name,_,_)))));true).
 rmv_fact:-
     rmv_fact.
 
@@ -394,11 +408,61 @@ alter_prod_menu:-
 
 %-------------ALTER PROD STOCK-------------
 
+alter_stock(Prod_name,Fact_name,New_stock,Mat_list):-
+    retract(prod(Prod_name,Fact_name,_,Mat_list)),
+    memorize_prod(prod(Prod_name,Fact_name,New_stock,Mat_list)).
 
+alter_stock_menu:-
+    write('Enter factory name: '),
+    single_read_string(Fact_name),
+    valid_fact_name(Fact_name),
+    write('Enter product name: '),
+    single_read_string(Prod_name),
+    valid_prod_name(Fact_name,Prod_name),
+    write('Enter new stock value: '),
+    single_read_numb(New_stock),
+    prod(Prod_name,Fact_name,_,Mat_list),
+    alter_stock(Prod_name,Fact_name,New_stock,Mat_list).
+alter_stock_menu:-
+    alter_prod_menu.
 
 %---------------ALTER TRANSP---------------
 
+alter_transp(Transp_name,New_Transp_list):-
+    retract(transp(Transp_name,_)),
+    memorize_transp(transp(Transp_name,New_Transp_list)).
 
+process_option_AT(Transp_name,Transp_list,1):-
+    write('Enter new transport method name: '),
+    single_read_string(Method),
+    fail_if_member(Transp_list,[Method,_,_,_]),
+    write('Enter average transport speed: '),
+    single_read_numb(Speed),
+    write('Enter average transport emitions: '),
+    single_read_numb(Emitions),
+    write('Enter transport price: '),
+    single_read_numb(Price),
+    conc(Transp_list,[[Method,Speed,Emitions,Price]],New_Transp_list),
+    alter_transp(Transp_name,New_Transp_list).
+
+process_option_AT(Transp_name,Transp_list,2):-
+    write('Enter transport method name to remove: '),
+    single_read_string(Rmv_Method),
+    is_member(Transp_list,[Rmv_Method,_,_,_]),
+    delete(Transp_list,[Rmv_Method,_,_,_],New_Transp_list),
+    alter_transp(Transp_name,New_Transp_list).
+
+alter_transp_menu:-
+    write('Enter transporter name: '),
+    single_read_string(Transp_name),
+    valid_transp_name(Transp_name),
+    write('1 -> Add new transport method'),nl,
+    write('2 -> Remove existing transport method'),nl,
+    readoption(OP),
+    transp(Transp_name,Transp_list),
+    process_option_AT(Transp_name,Transp_list,OP).
+alter_transp_menu:-
+    alter_transp_menu.
 
 %---------------ALTER ROUTE---------------
 
