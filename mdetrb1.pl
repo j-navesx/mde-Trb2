@@ -466,7 +466,23 @@ alter_transp_menu:-
 
 %---------------ALTER ROUTE---------------
 
+alter_route(Transp_name, Transp_method, Fact1, Fact2, New_Dist):-
+    retract(route(Transp_name, Transp_method, Fact1, Fact2, _ )),
+    memorize_route(route(Transp_name, Transp_method, Fact1, Fact2, New_Dist)).
 
+alter_route_menu:-
+    write('Enter shipper factory name: '),
+    single_read_string(Fact1),
+    valid_fact_name(Fact1),
+    write('Enter receiver factory name: '),
+    single_read_string(Fact2),
+    valid_fact_name(Fact2),
+    write('Enter new distance value: '),
+    single_read_numb(New_Dist),
+    findall((route(_, _, Fact1, Fact2, _)), (route(_, _, Fact1, Fact2, _)), List),
+    forall(member(route(Transp_name, Transp_method, Fact1, Fact2, _),List),(alter_route(Transp_name, Transp_method, Fact1, Fact2, New_Dist))).
+alter_route_menu:-
+    alter_route_menu.
 
 %------------------LIST REQUIRED PIECES------------------
 %RF5
@@ -711,9 +727,15 @@ exec(16) :- menu_1.
 exec(21) :- 
     alter_fact_menu,
     menu_alter.
-%exec(22) :- .
-%exec(23) :- .
-%exec(24) :- .
+exec(22) :- 
+    alter_stock_menu,
+    menu_alter.
+exec(23) :-
+    alter_transp_menu,
+    menu_alter.
+exec(24) :-
+    alter_route_menu,
+    menu_alter.
 exec(25) :-
     alter_prod_menu,
     menu_alter.
