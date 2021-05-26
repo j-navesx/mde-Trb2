@@ -518,26 +518,37 @@ get_prod_from_fact:-
 
 %------------------LIST TRANSPORTS BETWEEN FACTORIES------------------
 
+path(FactB, FactE, [(Transp,Method,FactB,FactE,Distance)]) :- 
+    route(Transp,Method,FactB,FactE,Distance).
+path(FactB,FactE, [(Transp,Method,FactB,FactX, Distance)| Rest]) :- 
+    route(Transp,Method,FactB,FactX,Distance),
+    path(FactX,FactE,Rest).
+ 
 get_transp_fact:-
     write('Start point:'),
     single_read_string(Fab1),
     write('End point:'),
     single_read_string(Fab2),
-    findall((Transport,Method), 
-        (route(Transport,Method,Fab1,Fab2,_)), 
+    findall((Path), 
+        (path(Fab1,Fab2,Path)), 
         List),
     nl,
-    forall(member((Transport,Method), List), 
-        format('~w: ~w ~w -> ~w~n',
-            [   Fab1, 
-                Transport,
-                Method,
-                Fab2
-            ])
+    forall(member((Path), List),
+        (format('Route:~n'),
+        forall(member((Transport,Method,FabX,FabY,_), Path), 
+            (format('~w: ~w ~w -> ~w ',
+                [   FabX,
+                    Transport,
+                    Method,
+                    FabY
+                ])
+            )
+        ),
+        nl
+        )
     ).
 
 %------------------LIST TRANSPORTS BETWEEN FACTORIES THROUGH OTHER FACTORIES------------------
-
 
 get_2transp_m_facts:-
     write('Start point:'),
@@ -560,7 +571,6 @@ get_2transp_m_facts:-
                 Fab2
             ])
     ).
-
 
 get_3transp_m_facts:-
     write('Start point:'),
@@ -588,6 +598,7 @@ get_3transp_m_facts:-
                 Fab2
             ])
     ).
+
 %------------------GET MINIMUM TRANSPORT TO FACTORY------------------
 
 
