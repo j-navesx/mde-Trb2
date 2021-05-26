@@ -131,6 +131,46 @@ memorize_route(_) :- write('=> Invalid Data').
 :- consult('route.pl').
 :- write('Loaded:'), listing(route).
 
+% BiDirectional Routing
+
+biDirectional_route(Transp,Method,FactX,FactY,Dist):- route(Transp,Method,FactX,FactY,Dist).
+biDirectional_route(Transp,Method,FactX,FactY,Dist):- route(Transp,Method,FactY,FactX,Dist).
+
+% Pathing
+
+passed([(_,_,Fact,_,_)|_], Fact).
+passed([(_,_,_,Fact,_)|_], Fact).
+passed([_|Rest], Fact) :- passed(Rest, Fact).
+
+add_no_repetition(Path, (Transp,Method,Fact1,Fact2,Dist), Pathi) :- 
+    not(passed(Path, Fact2)), 
+    conc(Path,[(Transp,Method,Fact1,Fact2,Dist)],Pathi).
+
+step_no_repetition(FactX,FactY,Path,TotalPath,PathDist,Total_Dist) :- 
+    biDirectional_route(Transp,Method,FactX,FactY,Dist), 
+    add_no_repetition(Path, (Transp,Method,FactX, FactY, Dist),TotalPath), 
+    Total_Dist is PathDist + Dist.
+step_no_repetition(FactX,FactY,Path,TotalPath, PathDist, Total_Dist) :- 
+    biDirectional_route(Transp,Method,FactX,FactZ,Dist), 
+    add_no_repetition(Path, (Transp,Method,FactX, FactZ, Dist),Pathi), 
+    Disti is PathDist + Dist,
+    step_no_repetition(FactZ, FactY, Pathi, TotalPath, Disti, Total_Dist).
+
+path(Fact1,Fact2,TotalPath,Total_Dist):- 
+    step_no_repetition(Fact1,Fact2,[],TotalPath, 0, Total_Dist).
+
+filter([],_,[]).
+filter([Path|Rest1],Fact,[Path|Rest2]):-
+    passed(Path,Fact),
+    filter(Rest1,Fact,Rest2).
+filter([_|Rest1],Fact,Rest2):- 
+    filter(Rest1,Fact,Rest2).
+
+pass_fact(FactX,FactY,Fact_to_pass,Current_path):- 
+    findall(Path,path(FactX,FactY,Path,_),AllPaths), 
+    filter(AllPaths,Fact_to_pass,Current_path), 
+    !.
+
 %---------------ADD FACTORY---------------
 %new_fact :- read(S),memorize_fact(S).
 
@@ -517,12 +557,6 @@ get_prod_from_fact:-
         format('~w~n',[Transport])).
 
 %------------------LIST TRANSPORTS BETWEEN FACTORIES------------------
-
-path(FactB, FactE, [(Transp,Method,FactB,FactE,Distance)]) :- 
-    route(Transp,Method,FactB,FactE,Distance).
-path(FactB,FactE, [(Transp,Method,FactB,FactX, Distance)| Rest]) :- 
-    route(Transp,Method,FactB,FactX,Distance),
-    path(FactX,FactE,Rest).
  
 get_transp_fact:-
     write('Start point:'),
@@ -530,7 +564,7 @@ get_transp_fact:-
     write('End point:'),
     single_read_string(Fab2),
     findall((Path), 
-        (path(Fab1,Fab2,Path)), 
+        (path(Fab1,Fab2,Path,_)), 
         List),
     nl,
     forall(member((Path), List),

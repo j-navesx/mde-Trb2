@@ -7,11 +7,18 @@ fact(d,[motores1300diesel,motores2000gasolina]).
 
 %prod(prod_name,factory_name,stock_units,material_list[ material_name, amount]).
 
+prod(prod2, hallo, 100, [[rubber, 2]]).
+prod(prod1, hallo, 150, [[silica, 4], [quartz, 1]]).
+prod(prod3, hallo, 200, [[mat1, 10], [mat2, 20]]).
+prod(pneus, a, 100, [[mat1, 10], [mat2, 20]]).
+
 %route(transpname, transp_type, fact1, fact2, dist(Km))
 
 route(transp1, ship1, a, b, 500).
 route(transp2, ship2, a, b, 500).
 route(transp2, plane1, b, c, 600).
+route(transp2, plane2, c, d, 600).
+route(transp1, plane1, b, d, 400).
 
 %transp(transpname, [transp_type, (Km/h)med, Emitions/Km, price/Km]).
 
@@ -149,5 +156,78 @@ exec(25) :- menu_1.
 %exec(3) :- removeFact.
 %exec(4) :- removeFact.
 exec(35) :- menu_1.
+
+/*path(FactX,FactY, [(Transp,Method,FactX,FactY,Dist)]) :- 
+    route(Transp,Method,FactX,FactY,Dist).
+path(FactX,FactY, [(Transp,Method,FactX,FactZ,Dist)| Rest]) :- 
+    route(Transp,Method,FactX,FactZ,Dist),
+    path(FactZ,FactY,Rest).
+
+allpaths(FactX,FactY,AllPaths):-
+    findall(Path,path(FactX,FactY,Path),AllPaths).*/
+
+biDirectional_route(Transp,Method,FactX,FactY,Dist):- route(Transp,Method,FactX,FactY,Dist).
+biDirectional_route(Transp,Method,FactX,FactY,Dist):- route(Transp,Method,FactY,FactX,Dist).
+
+passed([(_,_,Fact,_,_)|_], Fact).
+passed([(_,_,_,Fact,_)|_], Fact).
+passed([_|Rest], Fact) :- passed(Rest, Fact).
+
+add_no_repetition(Path, (Transp,Method,Fact1,Fact2,Dist), Pathi) :- 
+    not(passed(Path, Fact2)), 
+    conc(Path,[(Transp,Method,Fact1,Fact2,Dist)],Pathi).
+
+step_no_repetition(FactX,FactY,Path,TotalPath,PathDist,Total_Dist) :- 
+    biDirectional_route(Transp,Method,FactX,FactY,Dist), 
+    add_no_repetition(Path, (Transp,Method,FactX, FactY, Dist),TotalPath), 
+    Total_Dist is PathDist + Dist.
+step_no_repetition(FactX,FactY,Path,TotalPath, PathDist, Total_Dist) :- 
+    biDirectional_route(Transp,Method,FactX,FactZ,Dist), 
+    add_no_repetition(Path, (Transp,Method,FactX, FactZ, Dist),Pathi), 
+    Disti is PathDist + Dist,
+    step_no_repetition(FactZ, FactY, Pathi, TotalPath, Disti, Total_Dist).
+
+path(Fact1,Fact2,TotalPath,Total_Dist):- 
+    step_no_repetition(Fact1,Fact2,[],TotalPath, 0, Total_Dist).
+
+filter([],_,[]).
+filter([Path|Rest1],Fact,[Path|Rest2]):-
+    passed(Path,Fact),
+    filter(Rest1,Fact,Rest2).
+filter([_|Rest1],Fact,Rest2):- 
+    filter(Rest1,Fact,Rest2).
+
+pass_fact(FactX,FactY,Fact_to_pass,Current_path):- 
+    findall(Path,path(FactX,FactY,Path,_),AllPaths), 
+    filter(AllPaths,Fact_to_pass,Current_path), 
+    !.
+
+get_transp_fact:-
+    write('Start point:'),
+    single_read_string(Fab1),
+    write('End point:'),
+    single_read_string(Fab2),
+    findall((Path,Total_Dist), 
+        (path(Fab1,Fab2,Path,Total_Dist)), 
+        List),
+    nl,
+    forall(member((Path,Total_Dist), List),
+        (format('Route:~n'),
+        forall(member((Transport,Method,FabX,FabY,_), Path), 
+            (format('~w: ~w ~w -> ~w ',
+                [   FabX,
+                    Transport,
+                    Method,
+                    FabY
+                ])
+            )
+        ),
+        format('Total Distance: ~w ~n',[Total_Dist])
+        )
+    ).
+
+single_read_string(Atom):-
+    read_string(user_input,"\n","\r",_,Str),
+    string_to_atom(Str,Atom).
 
 
