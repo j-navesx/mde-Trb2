@@ -582,56 +582,36 @@ get_transp_fact:-
         )
     ).
 
+%------------------LIST TRANSPORTS BETWEEN FACTORIES WITH INFO------------------
+
+get_transp_fact_info:-
+    write('Start point:'),
+    single_read_string(Fab1),
+    write('End point:'),
+    single_read_string(Fab2),
+    findall((Path,Total_Dist), 
+        (path(Fab1,Fab2,Path,Total_Dist)), 
+        List),
+    nl,
+    forall(member((Path,Total_Dist), List),
+        (format('Route:~n'),
+        forall(member((Transport,Method,FabX,FabY,Distance), Path), 
+            (format('~w: ~w ~w -> ~w (~w) ',
+                [   FabX,
+                    Transport,
+                    Method,
+                    FabY,
+                    Distance
+                ])
+            )
+        ),
+        format('Total Distance: ~w~n',[Total_Dist])
+        )
+    ).
+
 %------------------LIST TRANSPORTS BETWEEN FACTORIES THROUGH OTHER FACTORIES------------------
 
-get_2transp_m_facts:-
-    write('Start point:'),
-    single_read_string(Fab1),
-    write('End point:'),
-    single_read_string(Fab2),
-    findall((Transport,Method,FabX,Transport2,Method2), 
-        (route(Transport,Method,Fab1,FabX,_),
-        route(Transport2,Method2,FabX,Fab2,_)), 
-        List),
-    nl,
-    forall(member((Transport,Method,FabX,Transport2,Method2), List), 
-       format('~w: ~w ~w -> ~w: ~w ~w -> ~w~n',
-            [   Fab1, 
-                Transport,
-                Method,
-                FabX,
-                Transport2,
-                Method2,
-                Fab2
-            ])
-    ).
 
-get_3transp_m_facts:-
-    write('Start point:'),
-    single_read_string(Fab1),
-    write('End point:'),
-    single_read_string(Fab2),
-    
-    findall((Transport,Method,FabX,Transport2,Method2,FabY,Transport3,Method3), 
-        (route(Transport,Method,Fab1,FabX,_),
-        route(Transport2,Method2,FabX,FabY,_),
-        route(Transport3,Method3,FabY,Fab2,_)), 
-        List),
-    nl,
-    forall(member((Transport,Method,FabX,Transport2,Method2,FabY,Transport3,Method3), List), 
-       format('~w: ~w ~w -> ~w: ~w ~w -> ~w: ~w ~w -> ~w~n',
-            [   Fab1, 
-                Transport,
-                Method,
-                FabX,
-                Transport2,
-                Method2,
-                FabY,
-                Transport3,
-                Method3,
-                Fab2
-            ])
-    ).
 
 %------------------GET MINIMUM TRANSPORT TO FACTORY------------------
 
