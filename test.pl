@@ -182,7 +182,9 @@ step_no_repetition(FactX,FactY,Path,TotalPath,PathDist,Total_Dist) :-
     add_no_repetition(Path, (Transp,Method,FactX, FactY, Dist),TotalPath), 
     Total_Dist is PathDist + Dist.
 step_no_repetition(FactX,FactY,Path,TotalPath, PathDist, Total_Dist) :- 
-    biDirectional_route(Transp,Method,FactX,FactZ,Dist), 
+    biDirectional_route(Transp,Method,FactX,FactZ,Dist),
+    transp(Transp,List),
+    member(([Method,_,_,_,_]),List),
     add_no_repetition(Path, (Transp,Method,FactX, FactZ, Dist),Pathi), 
     Disti is PathDist + Dist,
     step_no_repetition(FactZ, FactY, Pathi, TotalPath, Disti, Total_Dist).

@@ -615,7 +615,13 @@ get_transp_fact_info:-
 
 %------------------GET MINIMUM TRANSPORT TO FACTORY------------------
 
-
+minp([(Path, Distance)], Path, Distance).
+minp([(Path, Distance)|Rest], Path, Distance):-
+    minp(Rest,_,Min),
+    Distance=< Min.
+minp([(Path, Distance)|Rest],Min):-
+    minp(Rest,Path,Min),
+    Distance > Min.
 
 %------------------MENU------------------
 
