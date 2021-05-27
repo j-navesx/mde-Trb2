@@ -284,6 +284,7 @@ add_route:-
     single_read_string(Transp_name),
     write('Enter transport method name: '),
     single_read_string(Transp_type),
+    % TODO: see if is member of the transporter method list!!
     write('Enter shipper factory name: '),
     single_read_string(Fact_name_i),
     valid_fact_name(Fact_name_i),

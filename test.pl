@@ -14,16 +14,16 @@ prod(pneus, a, 100, [[mat1, 10], [mat2, 20]]).
 
 %route(transpname, transp_type, fact1, fact2, dist(Km))
 
-route(transp1, ship1, a, b, 500).
-route(transp2, ship2, a, b, 500).
 route(transp2, plane1, b, c, 600).
-route(transp2, plane2, c, d, 600).
-route(transp1, plane1, b, d, 400).
+route(transp1, ship1, a, b, 300).
+route(transp2, ship2, a, b, 300).
+route(transp3, truck1, a, b, 300).
 
 %transp(transpname, [transp_type, (Km/h)med, Emitions/Km, price/Km]).
 
-transp(transp1, [[ship1, 90, 80, 50]]).
-transp(transp2, [[ship2, 70, 40, 60],[plane1, 250, 60, 110]]).
+transp(transp2, [[ship2, 70, 40, 60, 10], [plane1, 250, 60, 110, 10]]).
+transp(transp3, [[truck1, 90, 50, 30, 10]]).
+transp(transp1, [[ship1, 90, 80, 50, 10]]).
 
 %--------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -177,18 +177,44 @@ add_no_repetition(Path, (Transp,Method,Fact1,Fact2,Dist), Pathi) :-
     not(passed(Path, Fact2)), 
     conc(Path,[(Transp,Method,Fact1,Fact2,Dist)],Pathi).
 
-step_no_repetition(FactX,FactY,Path,TotalPath,PathDist,Total_Dist) :- 
+step_no_repetition(FactX, FactY, Current_Path, TotalPath,
+    PathDist, PathTime, PathEmitions, PathPrice, PathConsumption,
+    Total_Dist, Total_Time, Total_Emitions, Total_Price, Total_Consumption) :- 
     biDirectional_route(Transp,Method,FactX,FactY,Dist), 
-    add_no_repetition(Path, (Transp,Method,FactX, FactY, Dist),TotalPath), 
-    Total_Dist is PathDist + Dist.
-step_no_repetition(FactX,FactY,Path,TotalPath, PathDist, Total_Dist) :- 
+    transp(Transp,Method_list),
+    member(([Method,Velocity,Emitions,Price,Consumption]),Method_list),
+    round((Dist/Velocity),StepTime,2),
+    StepEmitions is (Emitions*Dist),
+    StepPrice is (Price*Dist),
+    StepConsuption is (Consumption*Dist),
+    add_no_repetition(Current_Path, (Transp,Method,FactX, FactY, Dist, StepTime),TotalPath), 
+    Total_Dist is PathDist + Dist,
+    round((PathTime + StepTime),Total_Time,2),
+    Total_Emitions is PathEmitions + StepEmitions,
+    Total_Price is PathPrice + StepPrice,
+    Total_Consumption is PathConsumption + StepConsuption.
+step_no_repetition(FactX, FactY, Current_Path, TotalPath, 
+    PathDist, PathTime, PathEmitions, PathPrice, PathConsumption, 
+    Total_Dist, Total_Time, Total_Emitions, Total_Price, Total_Consumption) :- 
     biDirectional_route(Transp,Method,FactX,FactZ,Dist), 
-    add_no_repetition(Path, (Transp,Method,FactX, FactZ, Dist),Pathi), 
+    transp(Transp,Method_list),
+    member(([Method,Velocity,Emitions,Price,Consumption]),Method_list),
+    round((Dist/Velocity),StepTime,2),
+    StepEmitions is (Emitions*Dist),
+    StepPrice is (Price*Dist),
+    StepConsuption is (Consumption*Dist),
+    add_no_repetition(Current_Path, (Transp,Method,FactX, FactZ, Dist, StepTime),Pathi), 
     Disti is PathDist + Dist,
-    step_no_repetition(FactZ, FactY, Pathi, TotalPath, Disti, Total_Dist).
+    round((PathTime + StepTime),Timei,2),
+    Emitionsi is PathEmitions + StepEmitions,
+    Pricei is PathPrice + StepPrice,
+    Consumptioni is PathConsumption + StepConsuption,
+    step_no_repetition(FactZ, FactY, Pathi, TotalPath, 
+        Disti, Timei, Emitionsi, Pricei, Consumptioni, 
+        Total_Dist, Total_Time, Total_Emitions, Total_Price, Total_Consumption).
 
-path(Fact1,Fact2,TotalPath,Total_Dist):- 
-    step_no_repetition(Fact1,Fact2,[],TotalPath, 0, Total_Dist).
+path(Fact1,Fact2,TotalPath,Total_Dist,Total_Time, Total_Emitions, Total_Price, Total_Consumption):- 
+    step_no_repetition(Fact1, Fact2, [], TotalPath, 0, 0, 0, 0, 0, Total_Dist, Total_Time, Total_Emitions, Total_Price, Total_Consumption).
 
 filter([],_,[]).
 filter([Path|Rest1],Fact,[Path|Rest2]):-
@@ -198,7 +224,7 @@ filter([_|Rest1],Fact,Rest2):-
     filter(Rest1,Fact,Rest2).
 
 pass_fact(FactX,FactY,Fact_to_pass,Current_path):- 
-    findall(Path,path(FactX,FactY,Path,_),AllPaths), 
+    findall(Path,path(FactX,FactY,Path,_,_,_,_,_),AllPaths), 
     filter(AllPaths,Fact_to_pass,Current_path), 
     !.
 
@@ -208,7 +234,7 @@ get_transp_fact:-
     write('End point:'),
     single_read_string(Fab2),
     findall((Path,Total_Dist), 
-        (path(Fab1,Fab2,Path,Total_Dist)), 
+        (path(Fab1,Fab2,Path,Total_Dist,_,_,_,_)), 
         List),
     nl,
     forall(member((Path,Total_Dist), List),
@@ -230,4 +256,5 @@ single_read_string(Atom):-
     read_string(user_input,"\n","\r",_,Str),
     string_to_atom(Str,Atom).
 
+round(X,Y,D) :- Z is X * 10^D, round(Z, ZA), Y is ZA / 10^D.
 
