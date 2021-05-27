@@ -18,6 +18,8 @@ route(transp2, plane1, b, c, 600).
 route(transp1, ship1, a, b, 300).
 route(transp2, ship2, a, b, 300).
 route(transp3, truck1, a, b, 300).
+route(transp3, truck1, a, d, 300).
+route(transp3, truck1, d, c, 300).
 
 %transp(transpname, [transp_type, (Km/h)med, Emitions/Km, price/Km]).
 
@@ -223,9 +225,15 @@ filter([Path|Rest1],Fact,[Path|Rest2]):-
 filter([_|Rest1],Fact,Rest2):- 
     filter(Rest1,Fact,Rest2).
 
-pass_fact(FactX,FactY,Fact_to_pass,Current_path):- 
+multiple_entry_filter(_,[],_).
+multiple_entry_filter(AllPaths,[Current_Fact|Rest_Fact],Filtered_paths):-
+    filter(AllPaths,Current_Fact,Filtered_paths),
+    multiple_entry_filter(Filtered_paths,Rest_Fact,Filtered_paths).
+
+
+pass_fact(FactX,FactY,Facts_to_pass,Filtered_paths):- 
     findall(Path,path(FactX,FactY,Path,_,_,_,_,_),AllPaths), 
-    filter(AllPaths,Fact_to_pass,Current_path), 
+    multiple_entry_filter(AllPaths,Facts_to_pass,Filtered_paths), 
     !.
 
 get_transp_fact:-

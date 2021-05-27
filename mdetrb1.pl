@@ -77,6 +77,19 @@ fail_if_member(List,Element):-
     ;
     true.
 
+is_method_Registered(Transp_name,Method):-
+    transp(Transp_name,Method_list),
+    member(([Method,_,_,_,_]),Method_list),
+    !.
+is_method_Registered(_):-
+    write('=> Method Not Registered'),nl,
+    fail.
+
+round(X,Y,D):- 
+    Z is X * 10^D, 
+    round(Z, ZA), 
+    Y is ZA / 10^D.
+
 %---------------FACTORY---------------
 save_facts :- tell('facts.pl'),
             listing(fact),
@@ -146,18 +159,44 @@ add_no_repetition(Path, (Transp,Method,Fact1,Fact2,Dist), Pathi) :-
     not(passed(Path, Fact2)), 
     conc(Path,[(Transp,Method,Fact1,Fact2,Dist)],Pathi).
 
-step_no_repetition(FactX,FactY,Path,TotalPath,PathDist,Total_Dist) :- 
+step_no_repetition(FactX, FactY, Current_Path, TotalPath,
+    PathDist, PathTime, PathEmitions, PathPrice, PathConsumption,
+    Total_Dist, Total_Time, Total_Emitions, Total_Price, Total_Consumption) :- 
     biDirectional_route(Transp,Method,FactX,FactY,Dist), 
-    add_no_repetition(Path, (Transp,Method,FactX, FactY, Dist),TotalPath), 
-    Total_Dist is PathDist + Dist.
-step_no_repetition(FactX,FactY,Path,TotalPath, PathDist, Total_Dist) :- 
+    transp(Transp,Method_list),
+    member(([Method,Velocity,Emitions,Price,Consumption]),Method_list),
+    round((Dist/Velocity),StepTime,2),
+    StepEmitions is (Emitions*Dist),
+    StepPrice is (Price*Dist),
+    StepConsuption is (Consumption*Dist),
+    add_no_repetition(Current_Path, (Transp,Method,FactX, FactY, Dist, StepTime),TotalPath), 
+    Total_Dist is PathDist + Dist,
+    round((PathTime + StepTime),Total_Time,2),
+    Total_Emitions is PathEmitions + StepEmitions,
+    Total_Price is PathPrice + StepPrice,
+    Total_Consumption is PathConsumption + StepConsuption.
+step_no_repetition(FactX, FactY, Current_Path, TotalPath, 
+    PathDist, PathTime, PathEmitions, PathPrice, PathConsumption, 
+    Total_Dist, Total_Time, Total_Emitions, Total_Price, Total_Consumption) :- 
     biDirectional_route(Transp,Method,FactX,FactZ,Dist), 
-    add_no_repetition(Path, (Transp,Method,FactX, FactZ, Dist),Pathi), 
+    transp(Transp,Method_list),
+    member(([Method,Velocity,Emitions,Price,Consumption]),Method_list),
+    round((Dist/Velocity),StepTime,2),
+    StepEmitions is (Emitions*Dist),
+    StepPrice is (Price*Dist),
+    StepConsuption is (Consumption*Dist),
+    add_no_repetition(Current_Path, (Transp,Method,FactX, FactZ, Dist, StepTime),Pathi), 
     Disti is PathDist + Dist,
-    step_no_repetition(FactZ, FactY, Pathi, TotalPath, Disti, Total_Dist).
+    round((PathTime + StepTime),Timei,2),
+    Emitionsi is PathEmitions + StepEmitions,
+    Pricei is PathPrice + StepPrice,
+    Consumptioni is PathConsumption + StepConsuption,
+    step_no_repetition(FactZ, FactY, Pathi, TotalPath, 
+        Disti, Timei, Emitionsi, Pricei, Consumptioni, 
+        Total_Dist, Total_Time, Total_Emitions, Total_Price, Total_Consumption).
 
-path(Fact1,Fact2,TotalPath,Total_Dist):- 
-    step_no_repetition(Fact1,Fact2,[],TotalPath, 0, Total_Dist).
+path(Fact1,Fact2,TotalPath,Total_Dist,Total_Time, Total_Emitions, Total_Price, Total_Consumption):- 
+    step_no_repetition(Fact1, Fact2, [], TotalPath, 0, 0, 0, 0, 0, Total_Dist, Total_Time, Total_Emitions, Total_Price, Total_Consumption).
 
 filter([],_,[]).
 filter([Path|Rest1],Fact,[Path|Rest2]):-
@@ -166,10 +205,10 @@ filter([Path|Rest1],Fact,[Path|Rest2]):-
 filter([_|Rest1],Fact,Rest2):- 
     filter(Rest1,Fact,Rest2).
 
-pass_fact(FactX,FactY,Fact_to_pass,Current_path):- 
-    findall(Path,path(FactX,FactY,Path,_),AllPaths), 
-    filter(AllPaths,Fact_to_pass,Current_path), 
-    !.
+multiple_entry_filter(_,[],_).
+multiple_entry_filter(AllPaths,[Current_Fact|Rest_Fact],Filtered_paths):-
+    filter(AllPaths,Current_Fact,Filtered_paths),
+    multiple_entry_filter(Filtered_paths,Rest_Fact,Filtered_paths).
 
 %---------------ADD FACTORY---------------
 %new_fact :- read(S),memorize_fact(S).
@@ -266,7 +305,10 @@ process_transp_type(Transp_name,Transp_list,Transp_type):-
     write('Enter price per Km: '),
     single_read_numb(Price),
     conc(Transp_temp_list3,[Price],Transp_temp_list4),
-    conc(Transp_list,[Transp_temp_list4],Transp_list1),
+    write('Enter Comsumption per Km: '),
+    single_read_numb(Comsumption),
+    conc(Transp_temp_list4,[Comsumption],Transp_temp_list5),
+    conc(Transp_list,[Transp_temp_list5],Transp_list1),
     read_transp_type_finish(Transp_name,Transp_list1).
 
 add_transp:-
@@ -284,7 +326,7 @@ add_route:-
     single_read_string(Transp_name),
     write('Enter transport method name: '),
     single_read_string(Transp_type),
-    % TODO: see if is member of the transporter method list!!
+    is_method_Registered(Transp_name,Transp_type),
     write('Enter shipper factory name: '),
     single_read_string(Fact_name_i),
     valid_fact_name(Fact_name_i),
@@ -483,7 +525,9 @@ process_option_AT(Transp_name,Transp_list,1):-
     single_read_numb(Emitions),
     write('Enter transport price: '),
     single_read_numb(Price),
-    conc(Transp_list,[[Method,Speed,Emitions,Price]],New_Transp_list),
+    write('Enter transport Consumption: '),
+    single_read_numb(Consumption),
+    conc(Transp_list,[[Method,Speed,Emitions,Price,Consumption]],New_Transp_list),
     alter_transp(Transp_name,New_Transp_list).
 
 process_option_AT(Transp_name,Transp_list,2):-
@@ -546,6 +590,7 @@ get_prod_reqs:-
 
 %------------------LIST FACTORIES WITH A PRODUCT------------------
 %RF6
+
 get_prod_from_fact:-
     write('Insert Product to search:'),
     single_read_string(Product),
@@ -565,7 +610,7 @@ get_transp_fact:-
     write('End point:'),
     single_read_string(Fab2),
     findall((Path), 
-        (path(Fab1,Fab2,Path,_)), 
+        (path(Fab1,Fab2,Path,_,_,_,_,_)), 
         List),
     nl,
     forall(member((Path), List),
@@ -585,36 +630,40 @@ get_transp_fact:-
 
 %------------------LIST TRANSPORTS BETWEEN FACTORIES WITH INFO------------------
 
-get_transp_fact_info:-
+get_transp_fact:-
     write('Start point:'),
     single_read_string(Fab1),
     write('End point:'),
     single_read_string(Fab2),
     findall((Path,Total_Dist), 
-        (path(Fab1,Fab2,Path,Total_Dist)), 
+        (path(Fab1,Fab2,Path,Total_Dist,_,_,_,_)), 
         List),
     nl,
     forall(member((Path,Total_Dist), List),
         (format('Route:~n'),
-        forall(member((Transport,Method,FabX,FabY,Distance), Path), 
-            (format('~w: ~w ~w -> ~w (~w) ',
+        forall(member((Transport,Method,FabX,FabY,_), Path), 
+            (format('~w: ~w ~w -> ~w ',
                 [   FabX,
                     Transport,
                     Method,
-                    FabY,
-                    Distance
+                    FabY
                 ])
             )
         ),
-        format('Total Distance: ~w~n',[Total_Dist])
+        format('Total Distance: ~w ~n',[Total_Dist])
         )
     ).
 
 %------------------LIST TRANSPORTS BETWEEN FACTORIES THROUGH OTHER FACTORIES------------------
+%RF9
 
-
+pass_fact(FactX,FactY,Facts_to_pass_list,Filtered_paths):- 
+    findall(Path,path(FactX,FactY,Path,_,_,_,_,_),AllPaths), 
+    multiple_entry_filter(AllPaths,Facts_to_pass_list,Filtered_paths), 
+    !.
 
 %------------------GET MINIMUM TRANSPORT TO FACTORY------------------
+%RF10
 
 minp([(Path, Distance)], Path, Distance).
 minp([(Path, Distance)|Rest], Path, Distance):-
@@ -623,6 +672,45 @@ minp([(Path, Distance)|Rest], Path, Distance):-
 minp([(Path, Distance)|Rest],Min):-
     minp(Rest,Path,Min),
     Distance > Min.
+
+%------------------LIST TRANSPORTS BETWEEN FACTORIES THROUGH OTHER FACTORIES WITH PRODUCT------------------
+%RF11
+
+pass_fact_with_prod(_,_,[],_).
+pass_fact_with_prod(FactX,FactY,[Current_Product|Rest_Products],Filtered_paths):-
+    findall(Path,path(FactX,FactY,Path,_,_,_,_,_),AllPaths),
+    findall((Factory), (fact(Factory, Products), is_member(Current_Product,Products)), Facts_to_pass_list),
+    multiple_entry_filter(AllPaths,Facts_to_pass_list,Filtered_paths), 
+    pass_fact_with_prod(FactX,FactY,Rest_Products,Filtered_paths),
+    !.
+
+%------------------LIST TRANSPORTS BETWEEN FACTORIES THROUGH OTHER FACTORIES WITH PRODUCT materials------------------
+%RF12
+
+extract_material_name_from_product_desc([],_).
+extract_material_name_from_product_desc([[Current_Material,_]|Rest_Materials],Materials_list):-
+    conc(Materials_list,[Current_Material],Materials_list_i),
+    extract_material_name_from_product_desc(Rest_Materials,Materials_list_i).
+
+process_materials_list(_,[],_).
+process_materials_list(Receiver_Fact,[Current_material|Rest_materials],Final_Path_list):-
+    findall((Factory), (fact(Factory, Products), is_member(Current_material,Products)), Shipper_Facts_list),
+    paths_from_Fact_list(Shipper_Facts_list,Receiver_Fact,All_Paths),
+    conc([Current_material],All_Paths,All_Paths_i),
+    conc(Final_Path_list,[All_Paths_i],Final_Path_list_i),
+    process_materials_list(Receiver_Fact,Rest_materials,Final_Path_list_i).
+
+paths_from_Fact_list([],_,_).
+paths_from_Fact_list([Shipper_Fact|Rest_Facts],Receiver_Fact,AllPaths):-
+    findall(Path,path(Shipper_Fact,Receiver_Fact,Path,_,_,_,_,_),Current_Paths_list),
+    conc(AllPaths,Current_Paths_list,AllPaths_i),
+    paths_from_Fact_list(Rest_Facts,Receiver_Fact,AllPaths_i).
+
+pass_fact_with_prod_materials(Fact,Product,Final_Path_list):-
+    prod(Product,Fact,_,Product_desc_list),
+    extract_material_name_from_product_desc(Product_desc_list,Materials_list),
+    process_materials_list(Fact,Materials_list,Final_Path_list),
+    !.
 
 %------------------MENU------------------
 
