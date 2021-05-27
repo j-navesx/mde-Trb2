@@ -687,29 +687,29 @@ pass_fact_with_prod(FactX,FactY,[Current_Product|Rest_Products],Filtered_paths):
 %------------------LIST TRANSPORTS BETWEEN FACTORIES THROUGH OTHER FACTORIES WITH PRODUCT materials------------------
 %RF12
 
-extract_material_name_from_product_desc([],_).
-extract_material_name_from_product_desc([[Current_Material,_]|Rest_Materials],Materials_list):-
-    conc(Materials_list,[Current_Material],Materials_list_i),
-    extract_material_name_from_product_desc(Rest_Materials,Materials_list_i).
+extract_material_name_from_product_desc([],Final_Materials_list,Final_Materials_list).
+extract_material_name_from_product_desc([[Current_Material,_]|Rest_Materials],Current_Materials_list,Final_Materials_list):-
+    conc(Current_Materials_list,[Current_Material],Materials_list_i),
+    extract_material_name_from_product_desc(Rest_Materials,Materials_list_i,Final_Materials_list).
 
-process_materials_list(_,[],_).
-process_materials_list(Receiver_Fact,[Current_material|Rest_materials],Final_Path_list):-
+process_materials_list(_,[],Final_Path_list,Final_Path_list).
+process_materials_list(Receiver_Fact,[Current_material|Rest_materials],Current_Path_list,Final_Path_list):-
     findall((Factory), (fact(Factory, Products), is_member(Current_material,Products)), Shipper_Facts_list),
-    paths_from_Fact_list(Shipper_Facts_list,Receiver_Fact,All_Paths),
-    conc([Current_material],All_Paths,All_Paths_i),
-    conc(Final_Path_list,[All_Paths_i],Final_Path_list_i),
-    process_materials_list(Receiver_Fact,Rest_materials,Final_Path_list_i).
+    paths_from_Fact_list(Shipper_Facts_list,Receiver_Fact,[],All_Paths_to_fact),
+    conc([Current_material],All_Paths_to_fact,All_Paths_to_fact_i),
+    conc(Current_Path_list,[All_Paths_to_fact_i],Path_list_i),
+    process_materials_list(Receiver_Fact,Rest_materials,Path_list_i,Final_Path_list).
 
-paths_from_Fact_list([],_,_).
-paths_from_Fact_list([Shipper_Fact|Rest_Facts],Receiver_Fact,AllPaths):-
-    findall(Path,path(Shipper_Fact,Receiver_Fact,Path,_,_,_,_,_),Current_Paths_list),
-    conc(AllPaths,Current_Paths_list,AllPaths_i),
-    paths_from_Fact_list(Rest_Facts,Receiver_Fact,AllPaths_i).
+paths_from_Fact_list([],_,Final_Path_list,Final_Path_list).
+paths_from_Fact_list([Shipper_Fact|Rest_Facts],Receiver_Fact,Current_Path_list,Final_Path_list):-
+    findall(Path,path(Shipper_Fact,Receiver_Fact,Path,_,_,_,_,_),AllPaths_to_fact),
+    conc(Current_Path_list,AllPaths_to_fact,AllPaths_i),
+    paths_from_Fact_list(Rest_Facts,Receiver_Fact,AllPaths_i,Final_Path_list).
 
 pass_fact_with_prod_materials(Fact,Product,Final_Path_list):-
     prod(Product,Fact,_,Product_desc_list),
-    extract_material_name_from_product_desc(Product_desc_list,Materials_list),
-    process_materials_list(Fact,Materials_list,Final_Path_list),
+    extract_material_name_from_product_desc(Product_desc_list,[],Materials_list),
+    process_materials_list(Fact,Materials_list,[],Final_Path_list), 
     !.
 
 %------------------MENU------------------

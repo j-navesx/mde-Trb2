@@ -1,6 +1,6 @@
 :- dynamic fact/2.
 
-fact(a, [pneus, pastilhas]).
+fact(a, [carro]).
 fact(b, [parabrisas, janelas]).
 fact(c, [jantesvw, portasvw, capovw, custombodywork]).
 fact(d, [motores1300diesel, motores2000gasolina]).
