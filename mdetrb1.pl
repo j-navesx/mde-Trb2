@@ -90,6 +90,12 @@ round(X,Y,D):-
     round(Z, ZA), 
     Y is ZA / 10^D.
 
+press_any_key(_):-
+    write('Press any key: '),
+    get_single_char(_),
+    nl.
+    
+
 %---------------FACTORY---------------
 save_facts :- tell('facts.pl'),
             listing(fact),
@@ -571,9 +577,10 @@ alter_route_menu:-
 
 %------------------LIST REQUIRED PIECES------------------
 %RF5
-get_prod_reqs:-
-    single_read_string(Product),
 
+get_prod_reqs:-
+    write('Insert Product to search: '),
+    single_read_string(Product),
     findall((Materials),
     prod(Product,_,_,Materials),
     List),
@@ -592,7 +599,7 @@ get_prod_reqs:-
 %RF6
 
 get_prod_from_fact:-
-    write('Insert Product to search:'),
+    write('Insert Product to search: '),
     single_read_string(Product),
     findall((Factory), 
         (fact(Factory, Products),
@@ -603,12 +610,15 @@ get_prod_from_fact:-
         format('~w~n',[Transport])).
 
 %------------------LIST TRANSPORTS BETWEEN FACTORIES------------------
- 
+%RF7
+
 get_transp_fact:-
     write('Start point:'),
     single_read_string(Fab1),
+    valid_fact_name(Fab1),
     write('End point:'),
     single_read_string(Fab2),
+    valid_fact_name(Fab2),
     findall((Path), 
         (path(Fab1,Fab2,Path,_,_,_,_,_)), 
         List),
@@ -626,20 +636,26 @@ get_transp_fact:-
         ),
         nl
         )
-    ).
+    ),
+    !.
+    get_transp_fact:-
+        get_transp_fact.
 
 %------------------LIST TRANSPORTS BETWEEN FACTORIES WITH INFO------------------
+%RF8
 
 get_transp_fact_info:-
     write('Start point:'),
     single_read_string(Fab1),
+    valid_fact_name(Fab1),
     write('End point:'),
     single_read_string(Fab2),
-    findall((Path,Total_Dist), 
-        (path(Fab1,Fab2,Path,Total_Dist,_,_,_,_)), 
+    valid_fact_name(Fab2),
+    findall((Path,Total_Dist,Total_Time, Total_Emitions, Total_Price, Total_Consumption), 
+        (path(Fab1,Fab2,Path,Total_Dist,Total_Time, Total_Emitions, Total_Price, Total_Consumption)), 
         List),
     nl,
-    forall(member((Path,Total_Dist), List),
+    forall(member((Path,Total_Dist,Total_Time, Total_Emitions, Total_Price, Total_Consumption), List),
         (format('Route:~n'),
         forall(member((Transport,Method,FabX,FabY,_), Path), 
             (format('~w: ~w ~w -> ~w ',
@@ -650,10 +666,18 @@ get_transp_fact_info:-
                 ])
             )
         ),
+        nl,
         format('Total Distance: ~w ~n',[Total_Dist]),
+        format('Total Time: ~w ~n',[Total_Time]),
+        format('Total Emitions: ~w ~n',[Total_Emitions]),
+        format('Total Price: ~w ~n',[Total_Price]),
+        format('Total Consumption: ~w ~n',[Total_Consumption]),
         nl
         )
-    ).
+    ),
+    !.
+get_transp_fact_info:-
+    get_transp_fact_info.
 
 %------------------LIST TRANSPORTS BETWEEN FACTORIES THROUGH OTHER FACTORIES------------------
 %RF9
@@ -663,15 +687,22 @@ read_mult_facts(stop,Facts_list,Final_facts_list):-
 read_mult_facts(_,Facts_list,Final_facts_list):-
     write('Enter fact (Enter stop to finish): '),
     single_read_string(Fact_name),
-    conc(Facts_list,[Fact_name],Facts_list_i),
+    ((fact(Fact_name,_);Fact_name=stop)
+    ->
+        (conc(Facts_list,[Fact_name],Facts_list_i))
+    ;
+        (write('=> Invalid Input'),nl)
+    ),
     read_mult_facts(Fact_name,Facts_list_i,Final_facts_list).
 
 get_transp_pass_fact:-
     write('Start point:'),
     single_read_string(Fab1),
+    valid_fact_name(Fab1),
     write('End point:'),
     single_read_string(Fab2),
-    write('Input Factories to Pass Through '),
+    valid_fact_name(Fab2),
+    write('Input Factories to Pass Through '),nl,
     read_mult_facts(1,[],Facts_to_pass_list),
     findall((Path,Total_Dist,Total_Time, Total_Emitions, Total_Price, Total_Consumption),
     path(Fab1,Fab2,Path,Total_Dist,Total_Time,Total_Emitions, Total_Price, Total_Consumption),
@@ -696,12 +727,15 @@ get_transp_pass_fact:-
             format('Total Time: ~w ~n',[Total_Time]),
             format('Total Emitions: ~w ~n',[Total_Emitions]),
             format('Total Price: ~w ~n',[Total_Price]),
-            format('Total Consumption: ~w ~n',[Total_Consumption])
+            format('Total Consumption: ~w ~n',[Total_Consumption]),
+            nl
             )
         )
         )
     ),
     !.
+get_transp_pass_fact:-
+    get_transp_pass_fact.
 
 %------------------GET MINIMUM TRANSPORT TO FACTORY------------------
 %RF10
@@ -710,7 +744,7 @@ minp([(Path, Distance)], Path, Distance).
 minp([(Path, Distance)|Rest], Path, Distance):-
     minp(Rest,_,Min),
     Distance=< Min.
-minp([(Path, Distance)|Rest],Min):-
+minp([(_, Distance)|Rest],Path, Min):-
     minp(Rest,Path,Min),
     Distance > Min.
 
@@ -779,6 +813,149 @@ pass_fact_with_prod_materials(Fact,Product,Final_Path_list):-
     process_materials_list(Fact,Materials_list,[],Final_Path_list), 
     !.
 
+%------------------LIST TRANSPORTS BY SPECIFICATION------------------
+%RF14
+
+%findall((Path,Total_Dist,Total_Time, Total_Emitions, Total_Price, Total_Consumption),
+%path(Fab1,Fab2,Path,Total_Dist,Total_Time,Total_Emitions, Total_Price, Total_Consumption),
+%All_Paths_all_info), 
+
+min_consumption([(Path, Consuption)], Path, Consuption).
+min_consumption([(Path, Consuption)|Rest], Path, Consuption):-
+    min_consumption(Rest,_,Min_Consumption),
+    Consuption=< Min_Consumption.
+min_consumption([(_, Consuption)|Rest], Path, Min_Consumption):-
+    min_consumption(Rest,Path,Min_Consumption),
+    Consuption > Min_Consumption.
+
+min_Emitions([(Path, Emitions)], Path, Emitions).
+min_Emitions([(Path, Emitions)|Rest], Path, Emitions):-
+    min_Emitions(Rest,_,Min_Emitions),
+    Emitions=< Min_Emitions.
+min_Emitions([(_, Emitions)|Rest], Path, Min_Emitions):-
+    min_Emitions(Rest,Path,Min_Emitions),
+    Emitions > Min_Emitions.
+
+min_Price([(Path, Emitions)], Path, Emitions).
+min_Price([(Path, Emitions)|Rest], Path, Emitions):-
+    min_Price(Rest,_,Min_Price),
+    Emitions=< Min_Price.
+min_Price([(_, Emitions)|Rest], Path, Min_Price):-
+    min_Price(Rest,Path,Min_Price),
+    Emitions > Min_Price.
+
+min_Time([(Path, Emitions)], Path, Emitions).
+min_Time([(Path, Emitions)|Rest], Path, Emitions):-
+    min_Time(Rest,_,Min_Time),
+    Emitions=< Min_Time.
+min_Time([(_, Emitions)|Rest], Path, Min_Time):-
+    min_Time(Rest,Path,Min_Time),
+    Emitions > Min_Time.
+
+process_option_LTS(1):-
+    get_shortest_path.
+
+process_option_LTS(2):-
+    write('Start point:'),
+    single_read_string(Fab1),
+    valid_fact_name(Fab1),
+    write('End point:'),
+    single_read_string(Fab2),
+    valid_fact_name(Fab2),
+    findall((Path,Total_Consumption),path(Fab1,Fab2,Path,_,_,_,_,Total_Consumption),All_Paths_Consumption), 
+    min_consumption(All_Paths_Consumption,Min_Consumption_Path,Min_Consumption),
+    format('Route:~n'),
+    forall(member((Transport,Method,FabX,FabY,_), Min_Consumption_Path), 
+        (format('~w: ~w ~w -> ~w ',
+            [   FabX,
+                Transport,
+                Method,
+                FabY
+            ])
+        )
+    ),
+    format('Total Consumption: ~w ~n',[Min_Consumption]),
+    !.
+
+process_option_LTS(3):-
+    write('Start point:'),
+    single_read_string(Fab1),
+    valid_fact_name(Fab1),
+    write('End point:'),
+    single_read_string(Fab2),
+    valid_fact_name(Fab2),
+    findall((Path,Total_Emitions),path(Fab1,Fab2,Path,_,_,Total_Emitions,_,_),All_Paths_Emitions), 
+    min_Emitions(All_Paths_Emitions,Min_Emitions_Path,Min_Emitions),
+    format('Route:~n'),
+    forall(member((Transport,Method,FabX,FabY,_), Min_Emitions_Path), 
+        (format('~w: ~w ~w -> ~w ',
+            [   FabX,
+                Transport,
+                Method,
+                FabY
+            ])
+        )
+    ),
+    format('Total Emitions: ~w ~n',[Min_Emitions]),
+    !.
+
+process_option_LTS(4):-
+    write('Start point:'),
+    single_read_string(Fab1),
+    valid_fact_name(Fab1),
+    write('End point:'),
+    single_read_string(Fab2),
+    valid_fact_name(Fab2),
+    findall((Path,Total_Price),path(Fab1,Fab2,Path,_,_,_,Total_Price,_),All_Paths_Price), 
+    min_Price(All_Paths_Price,Min_Price_Path,Min_Price),
+    format('Route:~n'),
+    forall(member((Transport,Method,FabX,FabY,_), Min_Price_Path), 
+        (format('~w: ~w ~w -> ~w ',
+            [   FabX,
+                Transport,
+                Method,
+                FabY
+            ])
+        )
+    ),
+    format('Total Price: ~w ~n',[Min_Price]),
+    !.
+
+process_option_LTS(5):-
+    write('Start point:'),
+    single_read_string(Fab1),
+    valid_fact_name(Fab1),
+    write('End point:'),
+    single_read_string(Fab2),
+    valid_fact_name(Fab2),
+    findall((Path,Total_Time),path(Fab1,Fab2,Path,_,Total_Time,_,_,_),All_Paths_Time), 
+    min_Time(All_Paths_Time,Min_Time_Path,Min_Time),
+    format('Route:~n'),
+    forall(member((Transport,Method,FabX,FabY,_), Min_Time_Path), 
+        (format('~w: ~w ~w -> ~w ',
+            [   FabX,
+                Transport,
+                Method,
+                FabY
+            ])
+        )
+    ),
+    format('Total Time: ~w ~n',[Min_Time]),
+    !.
+
+transport_by_spec_menu:-
+    write('-- Listar transporte por especificacao --'),nl,nl,
+    write('1 -> Obter transporte entre fabricas com menor distancia.'),nl,
+    write('2 -> Obter transporte entre fabricas com menor consumo.'),nl,
+    write('3 -> Obter transporte entre fabricas com menor producao de gases de estufa.'),nl,
+    write('4 -> Obter transporte entre fabricas com menor preco'),nl,
+    write('5 -> Obter transporte entre fabricas mais rapido'),nl,
+    readoption(OP),
+    process_option_LTS(OP),
+    press_any_key(_).
+transport_by_spec_menu:-
+    transport_by_spec_menu.
+
 %------------------MENU------------------
 
 readoption(O):-
@@ -804,7 +981,8 @@ menu(Op) :-
     write('1 -> Adicionar'),nl,
     write('2 -> Alterar'),nl,
     write('3 -> Remover'),nl,
-    write('4 -> Exit'), nl,
+    write('4 -> Listagem'),nl,
+    write('5 -> Exit'), nl,
     readoption(Op).
 
 menu_add :- 
@@ -821,7 +999,7 @@ add_menu(Op):-
     write('4 -> Adicionar rota a transportador'),nl,
     write('5 -> Adicionar descricao a um produto'),nl,
     write('6 -> Exit'), nl,
-    readoption(Op1),
+    single_read_numb(Op1),
     Op is Op1 + 10.
 
 menu_alter :- 
@@ -838,7 +1016,7 @@ alter_menu(Op):-
     write('4 -> Alterar informacao de rota'),nl,
     write('5 -> Alterar descricao a um produto'),nl,
     write('6 -> Exit'), nl,
-    readoption(Op1),
+    single_read_numb(Op1),
     Op is Op1 + 20.
 
 menu_rmv :- 
@@ -855,8 +1033,29 @@ rmv_menu(Op):-
     write('4 -> Remover rota de um transportador'),nl,
     write('5 -> Remover descricao de produto'),nl,
     write('6 -> Exit'), nl,
-    readoption(Op1),
+    single_read_numb(Op1),
     Op is Op1 + 30.
+
+menu_list :- 
+    nl,
+    write('Consultas a base de conhecimentos'), 
+    nl,
+    list_menu(Op),
+    execute(Op).
+
+list_menu(Op):-
+    write('1 -> Listar fabricas na cadeia com determinado produto'),nl,
+    write('2 -> Listar pecas necessarias para um produto'),nl,
+    write('3 -> Listar transportes entre duas fabricas'),nl,
+    write('4 -> Listar transportes entre duas fabricas com mais informacao'),nl,
+    write('5 -> Listar transportes entre duas fabricas a passar por uma ou mais fabricas'),nl,
+    write('6 -> Listar transporte por especificacao'),nl,
+    write('7 -> Listar transportes entre duas fabricas a passar por fabricas com produto indicado'),nl, %falta a parte grafica
+    write('8 -> Listar transportes para fabricar determinado produto'),nl, %falta a parte grafica
+    write('9 -> Apresentar fabrica central da rede'), nl, %TODO RF13
+    write('10 -> Exit'), nl,
+    single_read_numb(Op1),
+    Op is Op1 + 40.
 
 execute(Op):- 
     Op =< 4,
@@ -889,10 +1088,19 @@ execute(Op):-
     rmv_menu(NOp), 
     execute(NOp).
 
+execute(Op):- 
+    Op > 40,
+    Op =< 50,
+    exec(Op), 
+    nl, 
+    list_menu(NOp), 
+    execute(NOp).
+
 exec(1) :- menu_add.
 exec(2) :- menu_alter.
 exec(3) :- menu_rmv.
-exec(4) :- abort.
+exec(4) :- menu_list.
+exec(5) :- abort.
 
 exec(11) :- 
     new_fact,
@@ -944,4 +1152,33 @@ exec(35) :-
     rmv_prod_desc,
     menu_rmv.
 exec(36) :- menu_1.
+
+exec(41) :- 
+    get_prod_from_fact,
+    menu_list.
+exec(42) :- 
+    get_prod_reqs,
+    menu_list.
+exec(43) :- 
+    get_transp_fact,
+    menu_list.
+exec(44) :- 
+    get_transp_fact_info,
+    menu_list.
+exec(45) :- 
+    get_transp_pass_fact,
+    menu_list.
+exec(46) :- 
+    transport_by_spec_menu,
+    menu_list.
+exec(47) :- 
+    %Parte grafica,
+    menu_list.
+exec(48) :- 
+    %Parte grafica,
+    menu_list.
+exec(49) :- 
+    %Centralidade,
+    menu_list.
+exec(50) :- menu_1.
 
