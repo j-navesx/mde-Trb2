@@ -266,3 +266,13 @@ single_read_string(Atom):-
 
 round(X,Y,D) :- Z is X * 10^D, round(Z, ZA), Y is ZA / 10^D.
 
+read_mult_facts(stop,Facts_list,Final_facts_list):-
+    delete(Facts_list,stop,Final_facts_list).
+read_mult_facts(_,Facts_list,Final_facts_list):-
+    write('Enter fact (Enter stop to finish): '),
+    single_read_string(Fact_name),
+    conc(Facts_list,[Fact_name],Facts_list_i),
+    read_mult_facts(Fact_name,Facts_list_i,Final_facts_list).
+
+%read_mult_facts(1,[],Final_facts_list).
+
