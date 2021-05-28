@@ -666,11 +666,6 @@ read_mult_facts(_,Facts_list,Final_facts_list):-
     conc(Facts_list,[Fact_name],Facts_list_i),
     read_mult_facts(Fact_name,Facts_list_i,Final_facts_list).
 
-pass_fact(FactX,FactY,Facts_to_pass_list,Filtered_Paths):- 
-    findall((Path),path(FactX,FactY,Path,_,_,_,_,_),AllPaths), 
-    multiple_entry_filter(AllPaths,Facts_to_pass_list,Filtered_Paths), 
-    !.
-
 get_transp_pass_fact:-
     write('Start point:'),
     single_read_string(Fab1),
@@ -678,20 +673,32 @@ get_transp_pass_fact:-
     single_read_string(Fab2),
     write('Input Factories to Pass Through '),
     read_mult_facts(1,[],Facts_to_pass_list),
-    pass_fact(Fab1,Fab2,Facts_to_pass_list,Filtered_Paths), 
+    findall((Path,Total_Dist,Total_Time, Total_Emitions, Total_Price, Total_Consumption),
+    path(Fab1,Fab2,Path,Total_Dist,Total_Time,Total_Emitions, Total_Price, Total_Consumption),
+    All_Paths_all_info), 
+    findall((Path), member((Path,_,_,_,_,_),All_Paths_all_info), AllPaths),
+    multiple_entry_filter(AllPaths,Facts_to_pass_list,Filtered_Paths),
     nl,
     forall(member((Paths), Filtered_Paths),
         (format('Route:~n'),
-        forall(member((Transport,Method,FabX,FabY,_), Paths), 
-            (format('~w: ~w ~w -> ~w ',
-                [   FabX,
-                    Transport,
-                    Method,
-                    FabY
-                ])
+        forall(member((Paths,Total_Dist,Total_Time, Total_Emitions, Total_Price, Total_Consumption), All_Paths_all_info),(
+            forall(member((Transport,Method,FabX,FabY,_), Paths), 
+                (format('~w: ~w ~w -> ~w ',
+                    [   FabX,
+                        Transport,
+                        Method,
+                        FabY
+                    ])
+                )
+            ),
+            nl,
+            format('Total Distance: ~w ~n',[Total_Dist]),
+            format('Total Time: ~w ~n',[Total_Time]),
+            format('Total Emitions: ~w ~n',[Total_Emitions]),
+            format('Total Price: ~w ~n',[Total_Price]),
+            format('Total Consumption: ~w ~n',[Total_Consumption])
             )
-        ),
-        format('Total Distance: ~w ~n',[Total_Dist])
+        )
         )
     ),
     !.
