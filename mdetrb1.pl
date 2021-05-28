@@ -703,7 +703,7 @@ minp([(Path, Distance)], Path, Distance).
 minp([(Path, Distance)|Rest], Path, Distance):-
     minp(Rest,_,Min),
     Distance=< Min.
-minp([(Path, Distance)|Rest],Min):-
+minp([(_, Distance)|Rest],Path,Min):-
     minp(Rest,Path,Min),
     Distance > Min.
 

@@ -276,3 +276,49 @@ read_mult_facts(_,Facts_list,Final_facts_list):-
 
 %read_mult_facts(1,[],Final_facts_list).
 
+
+
+
+minp([(Path, Distance)], Path, Distance).
+minp([(Path, Distance)|Rest], Path, Distance):-
+    minp(Rest,_,Min),
+    Distance=< Min.
+minp([(_, Distance)|Rest],Path,Min):-
+    minp(Rest,Path,Min),
+    Distance > Min.
+
+get_short_path(FactX, FactY, MinPath, MinDistance):-
+    findall((Path, Distance), 
+    path(FactX,FactY,Path,Distance,_,_,_,_), 
+    List),
+    minp(List, MinPath, MinDistance),
+    !.
+
+
+get_fact_number(Number):-
+    findall(X,fact(X),List),
+    length(List, Number).
+
+get_all_distances:-
+    findall((FactName),fact(FactName,_),FactNames),
+    forall(member((FName),FactNames),
+        (forall(member((FName2),FactNames),
+            (findall((MD),get_short_path(FName,FName2,_,MD),List),
+            write(List)
+            )
+        ),
+        nl
+        )
+    ).   
+    
+    
+
+
+
+
+
+
+
+
+
+
