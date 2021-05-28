@@ -630,7 +630,7 @@ get_transp_fact:-
 
 %------------------LIST TRANSPORTS BETWEEN FACTORIES WITH INFO------------------
 
-get_transp_fact:-
+get_transp_fact_info:-
     write('Start point:'),
     single_read_string(Fab1),
     write('End point:'),
@@ -650,17 +650,44 @@ get_transp_fact:-
                 ])
             )
         ),
-        format('Total Distance: ~w ~n',[Total_Dist])
+        format('Total Distance: ~w ~n',[Total_Dist]),
+        nl
         )
     ).
 
 %------------------LIST TRANSPORTS BETWEEN FACTORIES THROUGH OTHER FACTORIES------------------
 %RF9
 
-pass_fact(FactX,FactY,Facts_to_pass_list,Filtered_paths):- 
+pass_fact(FactX,FactY,Facts_to_pass_list,Filtered_Paths):- 
     findall(Path,path(FactX,FactY,Path,_,_,_,_,_),AllPaths), 
-    multiple_entry_filter(AllPaths,Facts_to_pass_list,Filtered_paths), 
+    multiple_entry_filter(AllPaths,Facts_to_pass_list,Filtered_Paths), 
     !.
+
+get_transp_pass_fact:-
+    write('Start point:'),
+    single_read_string(Fab1),
+    write('End point:'),
+    single_read_string(Fab2),
+    write('Input Factories to Pass Through '),
+    %TODO
+    findall((Filtered_Paths), 
+        (pass_fact(Fab1,Fab2,Facts_to_pass_list,Filtered_Paths)), 
+        List),
+    nl,
+    forall(member((Filtered_Paths), List),
+        (format('Route:~n'),
+        forall(member((Transport,Method,FabX,FabY,_), Path), 
+            (format('~w: ~w ~w -> ~w ',
+                [   FabX,
+                    Transport,
+                    Method,
+                    FabY
+                ])
+            )
+        ),
+        format('Total Distance: ~w ~n',[Total_Dist])
+        )
+    ).
 
 %------------------GET MINIMUM TRANSPORT TO FACTORY------------------
 %RF10
