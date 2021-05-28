@@ -700,6 +700,32 @@ minp([(Path, Distance)|Rest],Min):-
     minp(Rest,Path,Min),
     Distance > Min.
 
+get_short_path(FactX, FactY, MinPath, MinDistance):-
+    findall((Path, Distance), 
+    path(FactX,FactY,Path,Distance,_,_,_,_), 
+    List),
+    minp(List, MinPath, MinDistance),
+    !.
+
+get_shortest_path:-
+    write('Start point:'),
+    single_read_string(Fab1),
+    write('End point:'),
+    single_read_string(Fab2),
+    get_short_path(Fab1,Fab2,MinPath,MinDistance),
+    nl,
+    format('Route:~n'),
+    forall(member((Transport,Method,FabX,FabY,_), MinPath), 
+        (format('~w: ~w ~w -> ~w ',
+            [   FabX,
+                Transport,
+                Method,
+                FabY
+            ])
+        )
+    ),
+    format('Total Distance: ~w ~n',[MinDistance]).
+
 %------------------LIST TRANSPORTS BETWEEN FACTORIES THROUGH OTHER FACTORIES WITH PRODUCT------------------
 %RF11
 
