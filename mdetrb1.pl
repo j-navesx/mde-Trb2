@@ -952,7 +952,8 @@ transport_by_spec_menu:-
     write('5 -> Obter transporte entre fabricas mais rapido'),nl,
     readoption(OP),
     process_option_LTS(OP),
-    press_any_key(_).
+    press_any_key(_),
+    !.
 transport_by_spec_menu:-
     transport_by_spec_menu.
 
@@ -983,7 +984,8 @@ menu(Op) :-
     write('3 -> Remover'),nl,
     write('4 -> Listagem'),nl,
     write('5 -> Exit'), nl,
-    readoption(Op).
+    readoption(Op),
+    !.
 
 menu_add :- 
     nl,
@@ -1000,7 +1002,8 @@ add_menu(Op):-
     write('5 -> Adicionar descricao a um produto'),nl,
     write('6 -> Exit'), nl,
     single_read_numb(Op1),
-    Op is Op1 + 10.
+    Op is Op1 + 10,
+    !.
 
 menu_alter :- 
     nl,
@@ -1017,7 +1020,8 @@ alter_menu(Op):-
     write('5 -> Alterar descricao a um produto'),nl,
     write('6 -> Exit'), nl,
     single_read_numb(Op1),
-    Op is Op1 + 20.
+    Op is Op1 + 20,
+    !.
 
 menu_rmv :- 
     nl,
@@ -1055,7 +1059,8 @@ list_menu(Op):-
     write('9 -> Apresentar fabrica central da rede'), nl, %TODO RF13
     write('10 -> Exit'), nl,
     single_read_numb(Op1),
-    Op is Op1 + 40.
+    Op is Op1 + 40,
+    !.
 
 execute(Op):- 
     Op =< 4,
