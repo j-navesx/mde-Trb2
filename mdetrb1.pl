@@ -744,7 +744,7 @@ minp([(Path, Distance)], Path, Distance).
 minp([(Path, Distance)|Rest], Path, Distance):-
     minp(Rest,_,Min),
     Distance=< Min.
-minp([(_, Distance)|Rest],Path, Min):-
+minp([(_, Distance)|Rest],Path,Min):-
     minp(Rest,Path,Min),
     Distance > Min.
 
@@ -812,6 +812,53 @@ pass_fact_with_prod_materials(Fact,Product,Final_Path_list):-
     extract_material_name_from_product_desc(Product_desc_list,[],Materials_list),
     process_materials_list(Fact,Materials_list,[],Final_Path_list), 
     !.
+
+%-----------------------FIND MOST CENTRAL FACT-----------------------
+%RF13
+
+find_centrality:-
+    % Quantas fabricas existem Number_Facts
+    % Lista de fabricas
+    get_fact_number_and_list(Facts_List,Number_Facts),
+    % Listar o sumatorio das dist minimas de uma fab X para o resto Min_Dists_list is [[Fact_name, Sum_Min_Dists],[Fact_name, Sum_Min_Dists],...]
+    sum_min_distance( Facts_List, Facts_List, Facts_List, 0, _, Min_Dists_list),
+    % Converter para Centrality_list is [[Fact_name, (Number_Facts - 1)/Sum_Min_Dists],[Fact_name, (Number_Facts - 1)/Sum_Min_Dists],...]
+    calc_centralized_value(Min_Dists_list,Number_Facts,_,Centralized_value_list),
+    % Encontrar fábrica com o valor maior
+    max_centralized_value(Centralized_value_list,Centralized_value,Centralized_Fact_name),
+    format('~w: value: ~w ~n', [Centralized_Fact_name, Centralized_value]),
+    !.
+
+get_fact_number_and_list(Facts_List,Number_Facts):-
+    findall(Fact_name,fact(Fact_name,_),Facts_List),
+    length(Facts_List, Number_Facts).
+
+sum_min_distance(_,[],_,_,Final_Min_Dists_list,Final_Min_Dists_list).
+sum_min_distance( Original_Facts_List, [CurrentFact1|Rest1], [], Current_fact_Min_dist_Sum, Min_Dists_list, Final_Min_Dists_list):-
+    conc(Min_Dists_list,[[CurrentFact1,Current_fact_Min_dist_Sum]],Min_Dists_list_i),
+    sum_min_distance(Original_Facts_List, Rest1, Original_Facts_List, 0, Min_Dists_list_i, Final_Min_Dists_list),
+    !.
+sum_min_distance( Original_Facts_List, [CurrentFact1|Rest1], [CurrentFact2|Rest2], Current_fact_Min_dist_Sum, Min_Dists_list, Final_Min_Dists_list):-
+    findall((MD),get_short_path(CurrentFact1, CurrentFact2, _, MD),List),
+    (([Step_Min_Distance] = List);(not(member(_,List)),Step_Min_Distance is 0)),
+    Current_fact_Min_dist_Sum_i is Current_fact_Min_dist_Sum + Step_Min_Distance,
+    sum_min_distance( Original_Facts_List, [CurrentFact1|Rest1], Rest2, Current_fact_Min_dist_Sum_i, Min_Dists_list, Final_Min_Dists_list),
+    !.
+
+calc_centralized_value([],_,Final_Centralized_value_list,Final_Centralized_value_list).
+calc_centralized_value([[Fact_name,Sum_Min_Dists]|Rest],Number_Facts,Centralized_value_list,Final_Centralized_value_list):-
+    ((Sum_Min_Dists is 0 , Centralized_value is 0);Centralized_value is (Number_Facts-1)/(Sum_Min_Dists)),
+    conc(Centralized_value_list,[[Fact_name,Centralized_value]],Centralized_value_list_i),
+    calc_centralized_value(Rest,Number_Facts,Centralized_value_list_i,Final_Centralized_value_list),
+    !.
+
+max_centralized_value([[Centralized_Fact_name,Centralized_value]],Centralized_value,Centralized_Fact_name).
+max_centralized_value([[Centralized_Fact_name,Centralized_value]|Rest],Centralized_value,Centralized_Fact_name):-
+    max_centralized_value(Rest,Max_Centralized_value,_),
+    Centralized_value >= Max_Centralized_value.
+max_centralized_value([[_,Centralized_value]|Rest],Max_Centralized_value,Centralized_Fact_name):-
+    max_centralized_value(Rest,Max_Centralized_value,Centralized_Fact_name),
+    Centralized_value < Max_Centralized_value.
 
 %------------------LIST TRANSPORTS BY SPECIFICATION------------------
 %RF14
