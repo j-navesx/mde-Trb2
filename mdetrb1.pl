@@ -235,7 +235,8 @@ new_fact:-
     write('Enter factory name: '),
     single_read_string(Node),
     exists_factory(Node),
-    read_fact_prods_finish(Node,[]).
+    read_fact_prods_finish(Node,[]),
+    !.
 new_fact:-
     new_fact.
 
@@ -265,7 +266,8 @@ add_prod_desc:-
     valid_prod_name(Fact_name,Prod_name),
     write('Enter stock amount: '),
     single_read_numb(Stock),
-    read_prods_mat_finish(Fact_name,Prod_name,Stock,[]).
+    read_prods_mat_finish(Fact_name,Prod_name,Stock,[]),
+    !.
 add_prod_desc:-
     add_prod_desc.
 
@@ -286,7 +288,8 @@ add_stock_menu:-
     write('Enter aditional stock amount: '),
     single_read_numb(Stock),
     prod(Prod_name,Fact_name,Initial_stock,Mat_list),
-    add_stock(prod(Prod_name,Fact_name,Initial_stock,Mat_list),Stock).
+    add_stock(prod(Prod_name,Fact_name,Initial_stock,Mat_list),Stock),
+    !.
 add_stock_menu:-
     add_stock_menu.
 
@@ -321,7 +324,8 @@ add_transp:-
     write('Enter transporter name: '),
     single_read_string(Transp_name),
     exists_transp(Transp_name),
-    read_transp_type_finish(Transp_name,[]).
+    read_transp_type_finish(Transp_name,[]),
+    !.
 add_transp:-
     add_transp.
 
@@ -342,7 +346,8 @@ add_route:-
     exists_route(Transp_name,Transp_type,Fact_name_i,Fact_name_f),
     write('Enter travel distance: '),
     single_read_numb(Distance),
-    memorize_route(route(Transp_name,Transp_type,Fact_name_i,Fact_name_f,Distance)).
+    memorize_route(route(Transp_name,Transp_type,Fact_name_i,Fact_name_f,Distance)),
+    !.
 add_route:-
     add_route.
 
@@ -359,7 +364,8 @@ rmv_fact:-
     ((findall((route(_,_,_,Fact_name,_)), (route(_,_,_,Fact_name,_)), List2),
     forall(member(route(_,_,_,Fact_name,_),List2),(retract(route(_,_,_,Fact_name,_)))));true),
     ((findall((prod(_,Fact_name,_,_)), (prod(_,Fact_name,_,_)), List3),
-    forall(member(prod(_,Fact_name,_,_),List3),(retract(prod(_,Fact_name,_,_)))));true).
+    forall(member(prod(_,Fact_name,_,_),List3),(retract(prod(_,Fact_name,_,_)))));true),
+    !.
 rmv_fact:-
     rmv_fact.
 
@@ -372,7 +378,8 @@ rmv_prod_desc:-
     write('Enter product name: '),
     single_read_string(Prod_name),
     valid_prod_name(Fact_name,Prod_name),
-    retract(prod(Prod_name,Fact_name,_,_)).
+    retract(prod(Prod_name,Fact_name,_,_)),
+    !.
 rmv_prod_desc:-
     rmv_prod_desc.
 
@@ -393,7 +400,8 @@ subtract_stock_menu:-
     write('Enter stock amount to remove: '),
     single_read_numb(Stock),
     prod(Prod_name,Fact_name,Initial_stock,Mat_list),
-    subtract_stock(prod(Prod_name,Fact_name,Initial_stock,Mat_list),Stock).
+    subtract_stock(prod(Prod_name,Fact_name,Initial_stock,Mat_list),Stock),
+    !.
 subtract_stock_menu:-
     subtract_stock_menu.
 
@@ -405,7 +413,8 @@ rmv_transp:-
     valid_transp_name(Transp_name),
     retract(transp(Transp_name,_)),
     findall((route(Transp_name,_,_,_,_)), (route(Transp_name,_,_,_,_)), List),
-    forall(member(route(Transp_name,_,_,_,_),List),(retract(route(Transp_name,_,_,_,_)))).
+    forall(member(route(Transp_name,_,_,_,_),List),(retract(route(Transp_name,_,_,_,_)))),
+    !.
 rmv_transp:-
     rmv_transp.
 
@@ -423,7 +432,8 @@ rmv_route:-
     single_read_string(Fact_name_f),
     valid_fact_name(Fact_name_f),
     valid_route(Transp_name,Transp_type,Fact_name_i,Fact_name_f),
-    retract(route(Transp_name,Transp_type,Fact_name_i,Fact_name_f,_)).
+    retract(route(Transp_name,Transp_type,Fact_name_i,Fact_name_f,_)),
+    !.
 rmv_route:-
     rmv_route.
 
@@ -454,7 +464,8 @@ alter_fact_menu:-
     write('2 -> Remove factory product'),nl,
     readoption(OP),
     fact(Fact_name,Prod_list),
-    process_option_AF(Fact_name, Prod_list, OP).
+    process_option_AF(Fact_name, Prod_list, OP),
+    !.
 alter_fact_menu:-
     alter_fact_menu.
 
@@ -491,7 +502,8 @@ alter_prod_menu:-
     write('2 -> Remove product material'),nl,
     readoption(OP),
     prod(Prod_name,Fact_name,Stock,Mat_list),
-    process_option_APD(Prod_name,Fact_name,Stock,Mat_list,OP).
+    process_option_APD(Prod_name,Fact_name,Stock,Mat_list,OP),
+    !.
 alter_prod_menu:-
     alter_prod_menu.
 
@@ -511,7 +523,8 @@ alter_stock_menu:-
     write('Enter new stock value: '),
     single_read_numb(New_stock),
     prod(Prod_name,Fact_name,_,Mat_list),
-    alter_stock(Prod_name,Fact_name,New_stock,Mat_list).
+    alter_stock(Prod_name,Fact_name,New_stock,Mat_list),
+    !.
 alter_stock_menu:-
     alter_prod_menu.
 
@@ -551,7 +564,8 @@ alter_transp_menu:-
     write('2 -> Remove existing transport method'),nl,
     readoption(OP),
     transp(Transp_name,Transp_list),
-    process_option_AT(Transp_name,Transp_list,OP).
+    process_option_AT(Transp_name,Transp_list,OP),
+    !.
 alter_transp_menu:-
     alter_transp_menu.
 
@@ -571,7 +585,8 @@ alter_route_menu:-
     write('Enter new distance value: '),
     single_read_numb(New_Dist),
     findall((route(_, _, Fact1, Fact2, _)), (route(_, _, Fact1, Fact2, _)), List),
-    forall(member(route(Transp_name, Transp_method, Fact1, Fact2, _),List),(alter_route(Transp_name, Transp_method, Fact1, Fact2, New_Dist))).
+    forall(member(route(Transp_name, Transp_method, Fact1, Fact2, _),List),(alter_route(Transp_name, Transp_method, Fact1, Fact2, New_Dist))),
+    !.
 alter_route_menu:-
     alter_route_menu.
 
@@ -1096,11 +1111,12 @@ rmv_menu(Op):-
     nl,
     write('Menu para remover cenas'), 
     nl,
-    write('1 -> Remover fabricas da cadeia/rede'),nl,
+    write('1 -> Remover fabrica da cadeia/rede'),nl,
     write('2 -> Remover stock numa fabrica'),nl,
-    write('3 -> Remover transportadores'),nl,
-    write('4 -> Remover descricao de produto'),nl,
-    write('5 -> Exit'), nl,
+    write('3 -> Remover transportador'),nl,
+    write('4 -> Remover rota de um transportador'),nl,
+    write('5 -> Remover descricao de produto'),nl,
+    write('6 -> Exit'), nl,
     single_read_numb(Op1),
     Op is Op1 + 30,
     process_rmv_menu(Op),
@@ -1109,10 +1125,10 @@ rmv_menu(Op):-
 rmv_menu(_).
 
 process_rmv_menu(Op):-
-    (Op >= 31, Op =< 35), %valid?
+    (Op >= 31, Op =< 36), %valid?
     exec(Op).
 process_rmv_menu(Op):-
-    (Op < 31 ; Op > 35), %not valid?
+    (Op < 31 ; Op > 36), %not valid?
     rmv_menu(_).
 
 list_menu(Op):-
