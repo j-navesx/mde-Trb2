@@ -1230,7 +1230,7 @@ exec(48) :-
     %Parte grafica,
     menu_list.
 exec(49) :- 
-    %Centralidade,
+    find_centrality,
     menu_list.
 exec(50) :- menu_1.
 
