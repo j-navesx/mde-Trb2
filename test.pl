@@ -4,6 +4,7 @@ fact(a,[pneus,pastilhas]).
 fact(b,[parabrisas,janelas]).
 fact(c,[jantesvw,portasvw,capovw,custombodywork]).
 fact(d,[motores1300diesel,motores2000gasolina]).
+fact(hallo, [prod1, prod2, prod3]).
 
 %prod(prod_name,factory_name,stock_units,material_list[ material_name, amount]).
 
@@ -295,11 +296,6 @@ get_short_path(FactX, FactY, MinPath, MinDistance):-
     !.
 
 
-get_fact_number(Number):-
-    findall(X,fact(X,_),List),
-    length(List, Number).
-
-
 
 save_dist :- tell('dist.pl'),
             listing(dist),
@@ -362,5 +358,52 @@ add_distance(OriginalFacts,[CurrentFact1|Rest1],[CurrentFact2|Rest2],_,StepDista
     NewDistance is StepDistance + MinDist,
     add_distance(OriginalFacts,[CurrentFact1|Rest1],Rest2,_,NewDistance,Centralized,_),
     !.
+find_centrality:-
+    % Quantas fabricas existem Number_Facts
+    % Lista de fabricas
+    get_fact_number_and_list(Facts_List,Number_Facts),
+    % Listar o sumatorio das dist minimas de uma fab X para o resto Min_Dists_list is [[Fact_name, Sum_Min_Dists],[Fact_name, Sum_Min_Dists],...]
+    sum_min_distance( Facts_List, Facts_List, Facts_List, 0, _, Min_Dists_list),
+    % Converter para Centrality_list is [[Fact_name, (Number_Facts - 1)/Sum_Min_Dists],[Fact_name, (Number_Facts - 1)/Sum_Min_Dists],...]
+    calc_centralized_value(Min_Dists_list,Number_Facts,_,Centralized_value_list),
+    % Encontrar fábrica com o valor maior
+    max_centralized_value(Centralized_value_list,Centralized_value,Centralized_Fact_name),
+    format('~w: value: ~w ~n', [Centralized_Fact_name, Centralized_value]),
+    !.
 
+get_fact_number_and_list(Facts_List,Number_Facts):-
+    findall(Fact_name,fact(Fact_name,_),Facts_List),
+    length(Facts_List, Number_Facts).
 
+sum_min_distance(_,[],_,_,Final_Min_Dists_list,Final_Min_Dists_list).
+sum_min_distance( Original_Facts_List, [CurrentFact1|Rest1], [], Current_fact_Min_dist_Sum, Min_Dists_list, Final_Min_Dists_list):-
+    conc(Min_Dists_list,[[CurrentFact1,Current_fact_Min_dist_Sum]],Min_Dists_list_i),
+    sum_min_distance(Original_Facts_List, Rest1, Original_Facts_List, 0, Min_Dists_list_i, Final_Min_Dists_list),
+    !.
+sum_min_distance( Original_Facts_List, [CurrentFact1|Rest1], [CurrentFact2|Rest2], Current_fact_Min_dist_Sum, Min_Dists_list, Final_Min_Dists_list):-
+    findall((MD),get_short_path(CurrentFact1, CurrentFact2, _, MD),List),
+    (([Step_Min_Distance] = List);(not(member(_,List)),Step_Min_Distance is 0)),
+    Current_fact_Min_dist_Sum_i is Current_fact_Min_dist_Sum + Step_Min_Distance,
+    sum_min_distance( Original_Facts_List, [CurrentFact1|Rest1], Rest2, Current_fact_Min_dist_Sum_i, Min_Dists_list, Final_Min_Dists_list),
+    !.
+
+calc_centralized_value([],_,Final_Centralized_value_list,Final_Centralized_value_list).
+calc_centralized_value([[Fact_name,Sum_Min_Dists]|Rest],Number_Facts,Centralized_value_list,Final_Centralized_value_list):-
+    ((Sum_Min_Dists is 0 , Centralized_value is 0);Centralized_value is (Number_Facts-1)/(Sum_Min_Dists)),
+    conc(Centralized_value_list,[[Fact_name,Centralized_value]],Centralized_value_list_i),
+    calc_centralized_value(Rest,Number_Facts,Centralized_value_list_i,Final_Centralized_value_list),
+    !.
+
+max_centralized_value([[Centralized_Fact_name,Centralized_value]],Centralized_value,Centralized_Fact_name).
+max_centralized_value([[Centralized_Fact_name,Centralized_value]|Rest],Centralized_value,Centralized_Fact_name):-
+    max_centralized_value(Rest,Max_Centralized_value,_),
+    Centralized_value >= Max_Centralized_value.
+max_centralized_value([[_,Centralized_value]|Rest],Max_Centralized_value,Centralized_Fact_name):-
+    max_centralized_value(Rest,Max_Centralized_value,Centralized_Fact_name),
+    Centralized_value < Max_Centralized_value.
+
+% test sum_min_distance( [a,b,c,hallo], [a,b,c,hallo], [a,b,c,hallo], 0, _, Final_Min_Dists_list).
+
+% test calc_centralized_value([[a, 900], [b, 900], [c, 1200], [hallo, 0]],3,_,Centralized_value_list).
+
+% test max_centralized_value([[a, 0.0022222222222222222], [b, 0.0022222222222222222], [c, 0.0016666666666666668], [hallo, 0]],Centralized_value,Centralized_Fact_name).
