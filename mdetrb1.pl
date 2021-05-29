@@ -1018,30 +1018,35 @@ readoption(O):-
 
 valid(O):- O >=1, O=<6.
 
-menu_1 :- 
+menu :- 
+    menu(_).
+
+menu(Op) :- 
     nl,
     write('Gestao da base de conhecimento'), 
     nl,
-    menu(Op),
-    execute(Op).
-
-menu(Op) :- 
     write('1 -> Adicionar'),nl,
     write('2 -> Alterar'),nl,
     write('3 -> Remover'),nl,
     write('4 -> Listagem'),nl,
     write('5 -> Exit'), nl,
-    readoption(Op),
+    single_read_numb(Op),
+    process_main_menu(Op),
+    menu(_),
     !.
+menu(_).
 
-menu_add :- 
+process_main_menu(Op):-
+    (Op >= 1, Op =< 5), %valid?
+    exec(Op).
+process_main_menu(Op):-
+    (Op < 1 ; Op > 5), %not valid?
+    menu(_).
+
+add_menu(Op):-
     nl,
     write('Menu para adicionar cenas'), 
     nl,
-    add_menu(Op),
-    execute(Op).
-
-add_menu(Op):-
     write('1 -> Adicionar fabrica a cadeia/rede'),nl,
     write('2 -> Adicionar stock a uma fabrica'),nl,
     write('3 -> Adicionar transportador'),nl,
@@ -1050,16 +1055,22 @@ add_menu(Op):-
     write('6 -> Exit'), nl,
     single_read_numb(Op1),
     Op is Op1 + 10,
+    process_add_menu(Op),
+    add_menu(_),
     !.
+add_menu(_).
 
-menu_alter :- 
+process_add_menu(Op):-
+    (Op >= 11, Op =< 16), %valid?
+    exec(Op).
+process_add_menu(Op):-
+    (Op < 11 ; Op > 16), %not valid?
+    add_menu(_).
+
+alter_menu(Op):-
     nl,
     write('Menu para alterar cenas'), 
     nl,
-    alter_menu(Op),
-    execute(Op).
-
-alter_menu(Op):-
     write('1 -> Alterar fabrica da cadeia/rede'),nl,
     write('2 -> Alterar stock numa fabrica'),nl,
     write('3 -> Alterar informacao de transportador'),nl,
@@ -1068,33 +1079,46 @@ alter_menu(Op):-
     write('6 -> Exit'), nl,
     single_read_numb(Op1),
     Op is Op1 + 20,
+    process_alter_menu(Op),
+    alter_menu(_),
+    !.
+alter_menu(_).
+
+process_alter_menu(Op):-
+    (Op >= 21, Op =< 26), %valid?
+    exec(Op).
+process_alter_menu(Op):-
+    (Op < 21 ; Op > 26), %not valid?
+    alter_menu(_),
     !.
 
-menu_rmv :- 
+rmv_menu(Op):-
     nl,
     write('Menu para remover cenas'), 
     nl,
-    rmv_menu(Op),
-    execute(Op).
-
-rmv_menu(Op):-
-    write('1 -> Remover fabrica da cadeia/rede'),nl,
+    write('1 -> Remover fabricas da cadeia/rede'),nl,
     write('2 -> Remover stock numa fabrica'),nl,
-    write('3 -> Remover transportador'),nl,
-    write('4 -> Remover rota de um transportador'),nl,
-    write('5 -> Remover descricao de produto'),nl,
-    write('6 -> Exit'), nl,
+    write('3 -> Remover transportadores'),nl,
+    write('4 -> Remover descricao de produto'),nl,
+    write('5 -> Exit'), nl,
     single_read_numb(Op1),
-    Op is Op1 + 30.
+    Op is Op1 + 30,
+    process_rmv_menu(Op),
+    rmv_menu(_),
+    !.
+rmv_menu(_).
 
-menu_list :- 
+process_rmv_menu(Op):-
+    (Op >= 31, Op =< 35), %valid?
+    exec(Op).
+process_rmv_menu(Op):-
+    (Op < 31 ; Op > 35), %not valid?
+    rmv_menu(_).
+
+list_menu(Op):-
     nl,
     write('Consultas a base de conhecimentos'), 
     nl,
-    list_menu(Op),
-    execute(Op).
-
-list_menu(Op):-
     write('1 -> Listar fabricas na cadeia com determinado produto'),nl,
     write('2 -> Listar pecas necessarias para um produto'),nl,
     write('3 -> Listar transportes entre duas fabricas'),nl,
@@ -1107,130 +1131,53 @@ list_menu(Op):-
     write('10 -> Exit'), nl,
     single_read_numb(Op1),
     Op is Op1 + 40,
+    process_list_menu(Op),
+    list_menu(_),
     !.
+list_menu(_).
 
-execute(Op):- 
-    Op =< 4,
-    exec(Op), 
-    nl, 
-    menu(NOp), 
-    execute(NOp).
+process_list_menu(Op):-
+    (Op >= 41, Op =< 50), %valid?
+    exec(Op).
+process_list_menu(Op):-
+    (Op < 41 ; Op > 50), %not valid?
+    list_menu(_).
 
-execute(Op):- 
-    Op > 10,
-    Op =< 15,
-    exec(Op), 
-    nl, 
-    add_menu(NOp), 
-    execute(NOp).
+exec(1) :- add_menu(_).
+exec(2) :- alter_menu(_).
+exec(3) :- rmv_menu(_).
+exec(4) :- list_menu(_).
+exec(5) :- fail.
 
-execute(Op):- 
-    Op > 20,
-    Op =< 25,
-    exec(Op), 
-    nl, 
-    alter_menu(NOp), 
-    execute(NOp).
+exec(11) :- new_fact.
+exec(12) :- add_stock_menu.
+exec(13) :- add_transp.
+exec(14) :- add_route.
+exec(15) :- add_prod_desc.
+exec(16) :- fail.
 
-execute(Op):- 
-    Op > 30,
-    Op =< 35,
-    exec(Op), 
-    nl, 
-    rmv_menu(NOp), 
-    execute(NOp).
+exec(21) :- alter_fact_menu.
+exec(22) :- alter_stock_menu.
+exec(23) :- alter_transp_menu.
+exec(24) :- alter_route_menu.
+exec(25) :- alter_prod_menu.
+exec(26) :- fail.
 
-execute(Op):- 
-    Op > 40,
-    Op =< 50,
-    exec(Op), 
-    nl, 
-    list_menu(NOp), 
-    execute(NOp).
+exec(31) :- rmv_fact.
+exec(32) :- subtract_stock_menu.
+exec(33) :- rmv_transp.
+exec(34) :- rmv_route.
+exec(35) :- rmv_prod_desc.
+exec(36) :- fail.
 
-exec(1) :- menu_add.
-exec(2) :- menu_alter.
-exec(3) :- menu_rmv.
-exec(4) :- menu_list.
-exec(5) :- abort.
-
-exec(11) :- 
-    new_fact,
-    menu_add.
-exec(12) :- 
-    add_stock_menu,
-    menu_add.
-exec(13) :- 
-    add_transp,
-    menu_add.
-exec(14) :- 
-    add_route,
-    menu_add.
-exec(15) :- 
-    add_prod_desc,
-    menu_add.
-exec(16) :- menu_1.
-
-exec(21) :- 
-    alter_fact_menu,
-    menu_alter.
-exec(22) :- 
-    alter_stock_menu,
-    menu_alter.
-exec(23) :-
-    alter_transp_menu,
-    menu_alter.
-exec(24) :-
-    alter_route_menu,
-    menu_alter.
-exec(25) :-
-    alter_prod_menu,
-    menu_alter.
-exec(26) :- menu_1.
-
-exec(31) :- 
-    rmv_fact,
-    menu_rmv.
-exec(32) :- 
-    subtract_stock_menu,
-    menu_rmv.
-exec(33) :- 
-    rmv_transp,
-    menu_rmv.
-exec(34) :- 
-    rmv_route,
-    menu_rmv.
-exec(35) :- 
-    rmv_prod_desc,
-    menu_rmv.
-exec(36) :- menu_1.
-
-exec(41) :- 
-    get_prod_from_fact,
-    menu_list.
-exec(42) :- 
-    get_prod_reqs,
-    menu_list.
-exec(43) :- 
-    get_transp_fact,
-    menu_list.
-exec(44) :- 
-    get_transp_fact_info,
-    menu_list.
-exec(45) :- 
-    get_transp_pass_fact,
-    menu_list.
-exec(46) :- 
-    transport_by_spec_menu,
-    menu_list.
-exec(47) :- 
-    %Parte grafica,
-    menu_list.
-exec(48) :- 
-    %Parte grafica,
-    menu_list.
-exec(49) :- 
-    find_centrality,
-    menu_list.
-exec(50) :- menu_1.
+exec(41) :- get_prod_from_fact.
+exec(42) :- get_prod_reqs.
+exec(43) :- get_transp_fact.
+exec(44) :- get_transp_fact_info.
+exec(45) :- get_transp_pass_fact.
+exec(46) :- transport_by_spec_menu.
+exec(47). %Parte grafica
+exec(48). %Parte grafica
+exec(49) :- find_centrality.
+exec(50) :- fail.
 

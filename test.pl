@@ -28,6 +28,11 @@ transp(transp2, [[ship2, 70, 40, 60, 10], [plane1, 250, 60, 110, 10]]).
 transp(transp3, [[truck1, 90, 50, 30, 10]]).
 transp(transp1, [[ship1, 90, 80, 50, 10]]).
 
+single_read_numb(Number):-
+    read_string(user_input,"\n","\r",_,Str),
+    string_to_atom(Str,Atom),
+    atom_number(Atom,Number).
+
 %--------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 conc([], L, L).
@@ -44,19 +49,31 @@ readoption(O):-
 
 valid(O):- O >=1, O=<5.
 
-menu_1 :- 
+menu :- 
+    menu(_).
+
+menu(Op) :- 
     nl,
     write('Gestao da base de conhecimento'), 
     nl,
-    menu(Op),
-    execute(Op).
-
-menu(Op) :- 
     write('1 -> Adicionar'),nl,
     write('2 -> Alterar'),nl,
     write('3 -> Remover'),nl,
-    write('4 -> Exit'), nl,
-    readoption(Op).
+    write('4 -> Listagem'),nl,
+    write('5 -> Exit'), nl,
+    single_read_numb(Op),
+    (Op >= 1, Op =< 4), %valid?
+    process_main_menu(Op),
+    menu(_),
+    !.
+menu(_).
+
+process_main_menu(Op):-
+    (Op >= 1, Op =< 4),
+    exec(Op).
+process_main_menu(Op):-
+    (Op < 1 ; Op > 4), %not valid?
+    menu(_).
 
 menu_add :- 
     nl,
@@ -90,21 +107,30 @@ alter_menu(Op):-
     readoption(Op1),
     Op is Op1 + 20.
 
-menu_rmv :- 
+rmv_menu(Op):-
     nl,
     write('Menu para remover cenas'), 
     nl,
-    rmv_menu(Op),
-    execute(Op).
-
-rmv_menu(Op):-
     write('1 -> Remover fabricas da cadeia/rede'),nl,
     write('2 -> Remover stock numa fabrica'),nl,
     write('3 -> Remover transportadores'),nl,
     write('4 -> Remover descricao de produto'),nl,
     write('5 -> Exit'), nl,
-    readoption(Op1),
-    Op is Op1 + 30.
+    single_read_numb(Op1),
+    Op is Op1 + 30,
+    (Op >= 31, Op =< 35), %valid?
+    process_rmv_menu(Op),
+    rmv_menu(_),
+    !.
+rmv_menu(_).
+
+process_rmv_menu(Op):-
+    (Op >= 31, Op =< 35),
+    exec(Op).
+process_rmv_menu(Op):-
+    (Op < 31 ; Op > 35), %not valid?
+    rmv_menu(_).
+
 
 execute(Op):- 
     Op =< 4,
@@ -139,26 +165,26 @@ execute(Op):-
 
 exec(1) :- menu_add.
 exec(2) :- menu_alter.
-exec(3) :- menu_rmv.
-exec(4) :- abort.
+exec(3) :- rmv_menu(_).
+exec(4) :- fail.
 
 %exec(1) :- add_menu(Op).
 %exec(2) :- addFact.
 %exec(3) :- removeFact.
 %exec(4) :- removeFact.
-exec(15) :- menu_1.
+exec(15) :- fail.
 
 %exec(1) :- add_menu(Op).
 %exec(2) :- addFact.
 %exec(3) :- removeFact.
 %exec(4) :- removeFact.
-exec(25) :- menu_1.
+exec(25) :- fail.
 
-%exec(1) :- add_menu(Op).
+exec(31) :- nl,write('Funciona'),nl.
 %exec(2) :- addFact.
 %exec(3) :- removeFact.
 %exec(4) :- removeFact.
-exec(35) :- menu_1.
+exec(35) :- fail.
 
 /*path(FactX,FactY, [(Transp,Method,FactX,FactY,Dist)]) :- 
     route(Transp,Method,FactX,FactY,Dist).
@@ -337,6 +363,10 @@ get_all_distances:-
         nl
         )
     ). */
+get_fact_number(Number_Facts):-
+    findall(Fact_name,fact(Fact_name,_),Facts_List),
+    length(Facts_List, Number_Facts).
+
 add_distance(_,_,_,_,_,_,Result):-
     !.
 add_distance(_,[],_,_,_,Centralized,Result):-
@@ -358,6 +388,7 @@ add_distance(OriginalFacts,[CurrentFact1|Rest1],[CurrentFact2|Rest2],_,StepDista
     NewDistance is StepDistance + MinDist,
     add_distance(OriginalFacts,[CurrentFact1|Rest1],Rest2,_,NewDistance,Centralized,_),
     !.
+
 find_centrality:-
     % Quantas fabricas existem Number_Facts
     % Lista de fabricas
@@ -407,3 +438,5 @@ max_centralized_value([[_,Centralized_value]|Rest],Max_Centralized_value,Central
 % test calc_centralized_value([[a, 900], [b, 900], [c, 1200], [hallo, 0]],3,_,Centralized_value_list).
 
 % test max_centralized_value([[a, 0.0022222222222222222], [b, 0.0022222222222222222], [c, 0.0016666666666666668], [hallo, 0]],Centralized_value,Centralized_Fact_name).
+
+
