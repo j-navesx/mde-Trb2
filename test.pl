@@ -314,6 +314,50 @@ remove_all_dist:-
 :- consult('dist.pl').
 :- write('Loaded:'), listing(dist).
 
+max([E],E).
+max([E|R],E):-
+    max(R,M),
+    E >= M.
+max([E|R],M):-
+    max(R,M),
+    E < M.
+
+get_all_distances:-
+    findall((FactName),fact(FactName,_),FactNames),
+    add_distance(FactNames,FactNames,FactNames,_,0,_,Result),
+    nl,
+    write(Result),
+    nl.
+    /* forall(member((FName),FactNames),
+        (forall(member((FName2),FactNames),
+            (findall((MD),get_short_path(FName,FName2,_,MD),List),
+            write(List)
+            )
+        ),
+        nl
+        )
+    ). */
+add_distance(_,_,_,_,_,_,Result):-
+    !.
+add_distance(_,[],_,_,_,Centralized,Result):-
+    max(Centralized, Result),
+    write(Centralized),nl,
+    write(Result),nl,
+    add_distance(_,_,_,_,_,_,Result),
+    !.
+add_distance(OriginalFacts,[_|Rest1],[],TotalDistance,StepDistance,Centralized,_):-
+    TotalDistance is StepDistance,
+    get_fact_number(N),
+    Central is (N-1)/(TotalDistance),
+    conc(Centralized,[Central],Centralized1),
+    add_distance(OriginalFacts,Rest1,OriginalFacts,_,0,Centralized1,_),
+    !.
+add_distance(OriginalFacts,[CurrentFact1|Rest1],[CurrentFact2|Rest2],_,StepDistance,Centralized,_):-
+    findall((MD),get_short_path(CurrentFact1,CurrentFact2,_,MD),List),
+    (([MinDist] = List);(not(member(_,List)),MinDist is 0)),
+    NewDistance is StepDistance + MinDist,
+    add_distance(OriginalFacts,[CurrentFact1|Rest1],Rest2,_,NewDistance,Centralized,_),
+    !.
 find_centrality:-
     % Quantas fabricas existem Number_Facts
     % Lista de fabricas
