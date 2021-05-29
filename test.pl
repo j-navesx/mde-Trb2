@@ -299,9 +299,31 @@ get_fact_number(Number):-
     findall(X,fact(X),List),
     length(List, Number).
 
+
+
+save_dist :- tell('dist.pl'),
+            listing(dist),
+            told.
+
+memorize_dist(dist(FactName,Distance)) :- 
+    assertz(dist(FactName,Distance)),
+    save_dist.
+memorize_dist(_) :- write('=> Invalid Data').
+
+remove_all_dist:-
+    retractall(dist(_,_)),
+    save_dist.
+
+:- dynamic dist/2.
+:- consult('dist.pl').
+:- write('Loaded:'), listing(dist).
+
+
 get_all_distances:-
     findall((FactName),fact(FactName,_),FactNames),
-    forall(member((FName),FactNames),
+    remove_all_dist,
+    add_distance(FactNames,FactNames,FactNames,_,_).
+    /* forall(member((FName),FactNames),
         (forall(member((FName2),FactNames),
             (findall((MD),get_short_path(FName,FName2,_,MD),List),
             write(List)
@@ -309,16 +331,17 @@ get_all_distances:-
         ),
         nl
         )
-    ).   
-    
-    
-
-
-
-
-
-
-
-
+    ). */
+add_distance(_,[],[],_,_,_).
+add_distance(OriginalFacts,[CurrentFact1|Rest1],[],
+    TotalDistance, StepDistance):-
+    TotalDistance is StepDistance,
+    memorize_dist(dist(CurrentFact1,TotalDistance)),
+    add_distance(OriginalFacts,Rest1,OriginalFacts,_,0).
+add_distance(OriginalFacts,[CurrentFact1|Rest1],[CurrentFact2|Rest2],
+    _, StepDistance):-
+    get_short_path(CurrentFact1,CurrentFact2,_,MD),
+    NewDistance is StepDistance + MD,
+    add_distance(OriginalFacts,[CurrentFact1|Rest1],Rest2,_,NewDistance).
 
 
