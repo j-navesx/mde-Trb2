@@ -700,7 +700,7 @@ get_transp_fact_info:-
 read_mult_facts(stop,Facts_list,Final_facts_list):-
     delete(Facts_list,stop,Final_facts_list).
 read_mult_facts(_,Facts_list,Final_facts_list):-
-    write('Enter fact (Enter stop to finish): '),
+    write('Enter factory (Enter stop to finish): '),
     single_read_string(Fact_name),
     ((fact(Fact_name,_);Fact_name=stop)
     ->
@@ -792,6 +792,45 @@ get_shortest_path:-
 %------------------LIST TRANSPORTS BETWEEN FACTORIES THROUGH OTHER FACTORIES WITH PRODUCT------------------
 %RF11
 
+read_mult_prods(stop,Prod_list,Final_prods_list):-
+    delete(Prod_list,stop,Final_prods_list).
+read_mult_prods(_,Prod_list,Final_prods_list):-
+    write('Enter product (Enter stop to finish): '),
+    single_read_string(Prod_name),
+    ((prod(Prod_name,_,_,_);Prod_name=stop)
+    ->
+        (conc(Prod_list,[Prod_name],Prod_list_i))
+    ;
+        (write('=> Invalid Input'),nl)
+    ),
+    read_mult_prods(Prod_name,Prod_list_i,Final_prods_list).
+
+get_transp_fact_with_prod:-
+    write('Start point:'),
+    single_read_string(Fab1),
+    valid_fact_name(Fab1),
+    write('End point:'),
+    single_read_string(Fab2),
+    valid_fact_name(Fab2),
+    read_mult_prods(1,[],Prod_list),
+    pass_fact_with_prod(Fab1,Fab2,Prod_list,Filtered_paths),
+    nl,
+    forall(member((Path), Filtered_paths),
+        (format('Route:~n'),
+        forall(member((Transport,Method,FabX,FabY,_), Path), 
+            (format('~w: ~w ~w -> ~w ',
+                [   FabX,
+                    Transport,
+                    Method,
+                    FabY
+                ])
+            )
+        ),
+        nl
+        )
+    ),
+    !.
+
 pass_fact_with_prod(_,_,[],_).
 pass_fact_with_prod(FactX,FactY,[Current_Product|Rest_Products],Filtered_paths):-
     findall(Path,path(FactX,FactY,Path,_,_,_,_,_),AllPaths),
@@ -802,6 +841,36 @@ pass_fact_with_prod(FactX,FactY,[Current_Product|Rest_Products],Filtered_paths):
 
 %------------------LIST TRANSPORTS BETWEEN FACTORIES THROUGH OTHER FACTORIES WITH PRODUCT materials------------------
 %RF12
+
+get_transp_fact_with_product_materials:-
+    write('Insert factory:'),
+    single_read_string(Fab),
+    valid_fact_name(Fab),
+    write('Insert product:'),
+    single_read_string(Prod),
+    valid_prod_name(Fab,Prod),
+    nl,
+    pass_fact_with_prod_materials(Fab,Prod,Final_Path_list),
+    forall(member(([Product|Path_list]), Final_Path_list),
+        (format('Routes [~w]:~n',Product),
+        forall(member((Path), Path_list),
+            (format('Route:~n'),
+            forall(member((Transport,Method,FabX,FabY,_), Path), 
+                (format('~w: ~w ~w -> ~w ',
+                    [   FabX,
+                        Transport,
+                        Method,
+                        FabY
+                    ])
+                )
+            ),
+            nl
+            )
+        ),
+        nl
+        )
+    ),
+    !.
 
 extract_material_name_from_product_desc([],Final_Materials_list,Final_Materials_list).
 extract_material_name_from_product_desc([[Current_Material,_]|Rest_Materials],Current_Materials_list,Final_Materials_list):-
