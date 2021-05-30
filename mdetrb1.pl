@@ -607,7 +607,10 @@ get_prod_reqs:-
                 )
             )
         )
-    ).
+    ),
+    !.
+get_prod_reqs:-
+    get_prod_reqs.
     
 
 %------------------LIST FACTORIES WITH A PRODUCT------------------
@@ -653,8 +656,8 @@ get_transp_fact:-
         )
     ),
     !.
-    get_transp_fact:-
-        get_transp_fact.
+get_transp_fact:-
+    get_transp_fact.
 
 %------------------LIST TRANSPORTS BETWEEN FACTORIES WITH INFO------------------
 %RF8
@@ -773,8 +776,10 @@ get_short_path(FactX, FactY, MinPath, MinDistance):-
 get_shortest_path:-
     write('Start point:'),
     single_read_string(Fab1),
+    valid_fact_name(Fab1),
     write('End point:'),
     single_read_string(Fab2),
+    valid_fact_name(Fab2),
     get_short_path(Fab1,Fab2,MinPath,MinDistance),
     nl,
     format('Route:~n'),
@@ -787,7 +792,10 @@ get_shortest_path:-
             ])
         )
     ),
-    format('Total Distance: ~w ~n',[MinDistance]).
+    format('Total Distance: ~w ~n',[MinDistance]),
+    !.
+get_shortest_path:-
+    get_shortest_path.
 
 %------------------LIST TRANSPORTS BETWEEN FACTORIES THROUGH OTHER FACTORIES WITH PRODUCT------------------
 %RF11
@@ -830,6 +838,8 @@ get_transp_fact_with_prod:-
         )
     ),
     !.
+get_transp_fact_with_prod:-
+    get_transp_fact_with_prod.
 
 pass_fact_with_prod(_,_,[],_).
 pass_fact_with_prod(FactX,FactY,[Current_Product|Rest_Products],Filtered_paths):-
@@ -871,6 +881,8 @@ get_transp_fact_with_product_materials:-
         )
     ),
     !.
+get_transp_fact_with_product_materials:-
+    get_transp_fact_with_product_materials.
 
 extract_material_name_from_product_desc([],Final_Materials_list,Final_Materials_list).
 extract_material_name_from_product_desc([[Current_Material,_]|Rest_Materials],Current_Materials_list,Final_Materials_list):-
@@ -946,10 +958,6 @@ max_centralized_value([[_,Centralized_value]|Rest],Max_Centralized_value,Central
 
 %------------------LIST TRANSPORTS BY SPECIFICATION------------------
 %RF14
-
-%findall((Path,Total_Dist,Total_Time, Total_Emitions, Total_Price, Total_Consumption),
-%path(Fab1,Fab2,Path,Total_Dist,Total_Time,Total_Emitions, Total_Price, Total_Consumption),
-%All_Paths_all_info), 
 
 min_consumption([(Path, Consuption)], Path, Consuption).
 min_consumption([(Path, Consuption)|Rest], Path, Consuption):-
@@ -1269,8 +1277,8 @@ exec(43) :- get_transp_fact.
 exec(44) :- get_transp_fact_info.
 exec(45) :- get_transp_pass_fact.
 exec(46) :- transport_by_spec_menu.
-exec(47). %Parte grafica
-exec(48). %Parte grafica
+exec(47) :- get_transp_fact_with_prod.
+exec(48) :- get_transp_fact_with_product_materials.
 exec(49) :- find_centrality.
 exec(50) :- fail.
 
