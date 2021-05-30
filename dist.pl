@@ -1,3 +1,0 @@
-:- dynamic dist/2.
-
-
