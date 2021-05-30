@@ -1091,7 +1091,6 @@ transport_by_spec_menu:-
     write('5 -> Obter transporte entre fabricas mais rapido'),nl,
     readoption(OP),
     process_option_LTS(OP),
-    press_any_key(_),
     !.
 transport_by_spec_menu:-
     transport_by_spec_menu.
@@ -1271,14 +1270,14 @@ exec(34) :- rmv_route.
 exec(35) :- rmv_prod_desc.
 exec(36) :- fail.
 
-exec(41) :- get_prod_from_fact.
-exec(42) :- get_prod_reqs.
-exec(43) :- get_transp_fact.
-exec(44) :- get_transp_fact_info.
-exec(45) :- get_transp_pass_fact.
-exec(46) :- transport_by_spec_menu.
-exec(47) :- get_transp_fact_with_prod.
-exec(48) :- get_transp_fact_with_product_materials.
-exec(49) :- find_centrality.
+exec(41) :- get_prod_from_fact,press_any_key(_).
+exec(42) :- get_prod_reqs,press_any_key(_).
+exec(43) :- get_transp_fact,press_any_key(_).
+exec(44) :- get_transp_fact_info,press_any_key(_).
+exec(45) :- get_transp_pass_fact,press_any_key(_).
+exec(46) :- transport_by_spec_menu,press_any_key(_).
+exec(47) :- get_transp_fact_with_prod,press_any_key(_).
+exec(48) :- get_transp_fact_with_product_materials,press_any_key(_).
+exec(49) :- find_centrality,press_any_key(_).
 exec(50) :- fail.
 

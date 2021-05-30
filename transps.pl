@@ -2,7 +2,8 @@
 
 %transp(transpname, [transp_type, (Km/h)med, Emitions/Km, price/Km, Consumption]).
 
-transp(transp2, [[ship2, 70, 40, 60, 10], [plane1, 250, 60, 110, 10]]).
-transp(transp3, [[truck1, 90, 50, 30, 10]]).
-transp(transp1, [[ship1, 90, 80, 50, 10]]).
+transp(ups, [[truck1, 90, 0.035, 0.5, 0.24]]).
+transp(atlantic, [[ship1, 54, 0.85, 0.2, 23]]).
+transp(dhl, [[ship2, 57, 0.88, 0.2, 26],[truck2, 85, 0.065, 0.3, 0.34]]).
+transp(spedycargo, [[airbus_a380, 910, 0.35, 5.6, 21]]).
 
