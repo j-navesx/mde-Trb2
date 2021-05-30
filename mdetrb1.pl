@@ -1044,7 +1044,11 @@ menu(Op) :-
     write('2 -> Alterar'),nl,
     write('3 -> Remover'),nl,
     write('4 -> Listagem'),nl,
-    write('5 -> Exit'), nl,
+    write('5 -> listar factos das fabricas'),nl,
+    write('6 -> listar factos dos produtos com descricao'),nl,
+    write('7 -> listar factos dos transportadores'),nl,
+    write('8 -> listar factos das rotas'),nl,
+    write('9 -> Exit'), nl,
     single_read_numb(Op),
     process_main_menu(Op),
     menu(_),
@@ -1052,10 +1056,10 @@ menu(Op) :-
 menu(_).
 
 process_main_menu(Op):-
-    (Op >= 1, Op =< 5), %valid?
+    (Op >= 1, Op =< 9), %valid?
     exec(Op).
 process_main_menu(Op):-
-    (Op < 1 ; Op > 5), %not valid?
+    (Op < 1 ; Op > 9), %not valid?
     menu(_).
 
 add_menu(Op):-
@@ -1163,7 +1167,11 @@ exec(1) :- add_menu(_).
 exec(2) :- alter_menu(_).
 exec(3) :- rmv_menu(_).
 exec(4) :- list_menu(_).
-exec(5) :- fail.
+exec(5) :- listing(fact),press_any_key(_).
+exec(6) :- listing(prod),press_any_key(_).
+exec(7) :- listing(transp),press_any_key(_).
+exec(8) :- listing(route),press_any_key(_).
+exec(9) :- fail.
 
 exec(11) :- new_fact.
 exec(12) :- add_stock_menu.
