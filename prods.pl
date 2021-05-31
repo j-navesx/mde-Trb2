@@ -18,3 +18,4 @@ prod(quartz, campania, 1000, []).
 prod(texteis, oslo, 1000, []).
 prod(raw_plastic, jamtland, 1000, []).
 prod(borracha, jamtland, 1000, []).
+

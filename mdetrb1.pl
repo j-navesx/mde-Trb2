@@ -758,19 +758,22 @@ get_transp_pass_fact:-
 %------------------GET MINIMUM TRANSPORT TO FACTORY------------------
 %RF10
 
-minp([(Path, Distance)], Path, Distance).
-minp([(Path, Distance)|Rest], Path, Distance):-
-    minp(Rest,_,Min),
-    Distance=< Min.
-minp([(_, Distance)|Rest],Path,Min):-
-    minp(Rest,Path,Min),
-    Distance > Min.
+minimum_path([(Path, Distance)|Rest], MinPath, MinDistance):-
+    minp([(Path, Distance)|Rest], Path, Distance, MinPath, MinDistance).
+
+minp([], Final_Min_Path, Final_Min_Distance, Final_Min_Path, Final_Min_Distance).
+minp([(Path, Distance)|Rest], _, CurrentMinDistance, Final_Min_Path, Final_Min_Distance):-
+    Distance < CurrentMinDistance,
+    minp(Rest,Path, Distance, Final_Min_Path, Final_Min_Distance).
+minp([(_, Distance)|Rest], CurrentMinPath, CurrentMinDistance, Final_Min_Path, Final_Min_Distance):-
+    Distance >= CurrentMinDistance,
+    minp(Rest,CurrentMinPath, CurrentMinDistance, Final_Min_Path, Final_Min_Distance).
 
 get_short_path(FactX, FactY, MinPath, MinDistance):-
     findall((Path, Distance), 
     path(FactX,FactY,Path,Distance,_,_,_,_), 
     List),
-    minp(List, MinPath, MinDistance),
+    minimum_path(List, MinPath, MinDistance),
     !.
 
 get_shortest_path:-
@@ -948,48 +951,63 @@ calc_centralized_value([[Fact_name,Sum_Min_Dists]|Rest],Number_Facts,Centralized
     calc_centralized_value(Rest,Number_Facts,Centralized_value_list_i,Final_Centralized_value_list),
     !.
 
-max_centralized_value([[Centralized_Fact_name,Centralized_value]],Centralized_value,Centralized_Fact_name).
-max_centralized_value([[Centralized_Fact_name,Centralized_value]|Rest],Centralized_value,Centralized_Fact_name):-
-    max_centralized_value(Rest,Max_Centralized_value,_),
-    Centralized_value >= Max_Centralized_value.
-max_centralized_value([[_,Centralized_value]|Rest],Max_Centralized_value,Centralized_Fact_name):-
-    max_centralized_value(Rest,Max_Centralized_value,Centralized_Fact_name),
-    Centralized_value < Max_Centralized_value.
+max_centralized_value([[Centralized_Fact_name,Centralized_value]|Rest], MaxPath, MaxDistance):-
+    max_centralized([[Centralized_Fact_name,Centralized_value]|Rest], Centralized_Fact_name, Centralized_value, MaxPath, MaxDistance).
+
+max_centralized([], Final_Centralized_Fact_name, Final_Centralized_value, Final_Centralized_Fact_name, Final_Centralized_value).
+max_centralized([[Centralized_Fact_name,Centralized_value]|Rest], _, Corrent_Max_Centralized_value, Final_Centralized_Fact_name, Final_Centralized_value):-
+    Centralized_value >= Corrent_Max_Centralized_value,
+    max_centralized(Rest,Centralized_Fact_name, Centralized_value, Final_Centralized_Fact_name, Final_Centralized_value).
+max_centralized([[_,Centralized_value]|Rest], Corrent_Max_Fact_name, Corrent_Max_Centralized_value, Final_Centralized_Fact_name, Final_Centralized_value):-
+    Centralized_value < Corrent_Max_Centralized_value,
+    max_centralized(Rest,Corrent_Max_Fact_name, Corrent_Max_Centralized_value, Final_Centralized_Fact_name, Final_Centralized_value).
 
 %------------------LIST TRANSPORTS BY SPECIFICATION------------------
 %RF14
 
-min_consumption([(Path, Consuption)], Path, Consuption).
-min_consumption([(Path, Consuption)|Rest], Path, Consuption):-
-    min_consumption(Rest,_,Min_Consumption),
-    Consuption=< Min_Consumption.
-min_consumption([(_, Consuption)|Rest], Path, Min_Consumption):-
-    min_consumption(Rest,Path,Min_Consumption),
-    Consuption > Min_Consumption.
+min_consumption_path([(Path, Distance)|Rest], MinPath, MinDistance):-
+    min_consumption([(Path, Distance)|Rest], Path, Distance, MinPath, MinDistance).
 
-min_Emitions([(Path, Emitions)], Path, Emitions).
-min_Emitions([(Path, Emitions)|Rest], Path, Emitions):-
-    min_Emitions(Rest,_,Min_Emitions),
-    Emitions=< Min_Emitions.
-min_Emitions([(_, Emitions)|Rest], Path, Min_Emitions):-
-    min_Emitions(Rest,Path,Min_Emitions),
-    Emitions > Min_Emitions.
+min_consumption([], Final_Min_Path, Final_Min_Consuption, Final_Min_Path, Final_Min_Consuption).
+min_consumption([(Path, Consuption)|Rest], _, CurrentMinConsuption, Final_Min_Path, Final_Min_Consuption):-
+    Consuption < CurrentMinConsuption,
+    min_consumption(Rest,Path, Consuption, Final_Min_Path, Final_Min_Consuption).
+min_consumption([(_, Consuption)|Rest], CurrentMinPath, CurrentMinConsuption, Final_Min_Path, Final_Min_Consuption):-
+    Consuption >= CurrentMinConsuption,
+    min_consumption(Rest,CurrentMinPath, CurrentMinConsuption, Final_Min_Path, Final_Min_Consuption).
 
-min_Price([(Path, Emitions)], Path, Emitions).
-min_Price([(Path, Emitions)|Rest], Path, Emitions):-
-    min_Price(Rest,_,Min_Price),
-    Emitions=< Min_Price.
-min_Price([(_, Emitions)|Rest], Path, Min_Price):-
-    min_Price(Rest,Path,Min_Price),
-    Emitions > Min_Price.
+min_Emitions_path([(Path, Emitions)|Rest], MinPath, MinEmitions):-
+    min_Emitions([(Path, Emitions)|Rest], Path, Emitions, MinPath, MinEmitions).
 
-min_Time([(Path, Emitions)], Path, Emitions).
-min_Time([(Path, Emitions)|Rest], Path, Emitions):-
-    min_Time(Rest,_,Min_Time),
-    Emitions=< Min_Time.
-min_Time([(_, Emitions)|Rest], Path, Min_Time):-
-    min_Time(Rest,Path,Min_Time),
-    Emitions > Min_Time.
+min_Emitions([], Final_Min_Path, Final_Min_Emitions, Final_Min_Path, Final_Min_Emitions).
+min_Emitions([(Path, Emitions)|Rest], _, CurrentMinEmitions, Final_Min_Path, Final_Min_Emitions):-
+    Emitions < CurrentMinEmitions,
+    min_Emitions(Rest,Path, Emitions, Final_Min_Path, Final_Min_Emitions).
+min_Emitions([(_, Emitions)|Rest], CurrentMinPath, CurrentMinEmitions, Final_Min_Path, Final_Min_Emitions):-
+    Emitions >= CurrentMinEmitions,
+    min_Emitions(Rest,CurrentMinPath, CurrentMinEmitions, Final_Min_Path, Final_Min_Emitions).
+
+min_Price_path([(Path, Price)|Rest], MinPath, MinPrice):-
+    min_Price([(Path, Price)|Rest], Path, Price, MinPath, MinPrice).
+
+min_Price([], Final_Min_Path, Final_Min_Price, Final_Min_Path, Final_Min_Price).
+min_Price([(Path, Price)|Rest], _, CurrentMinPrice, Final_Min_Path, Final_Min_Price):-
+    Price < CurrentMinPrice,
+    min_Price(Rest,Path, Price, Final_Min_Path, Final_Min_Price).
+min_Price([(_, Price)|Rest], CurrentMinPath, CurrentMinPrice, Final_Min_Path, Final_Min_Price):-
+    Price >= CurrentMinPrice,
+    min_Price(Rest,CurrentMinPath, CurrentMinPrice, Final_Min_Path, Final_Min_Price).
+
+min_Time_path([(Path, Time)|Rest], MinPath, MinTime):-
+    min_Time([(Path, Time)|Rest], Path, Time, MinPath, MinTime).
+
+min_Time([], Final_Min_Path, Final_Min_Time, Final_Min_Path, Final_Min_Time).
+min_Time([(Path, Time)|Rest], _, CurrentMinTime, Final_Min_Path, Final_Min_Time):-
+    Time < CurrentMinTime,
+    min_Time(Rest,Path, Time, Final_Min_Path, Final_Min_Time).
+min_Time([(_, Time)|Rest], CurrentMinPath, CurrentMinTime, Final_Min_Path, Final_Min_Time):-
+    Time >= CurrentMinTime,
+    min_Time(Rest,CurrentMinPath, CurrentMinTime, Final_Min_Path, Final_Min_Time).
 
 process_option_LTS(1):-
     get_shortest_path.
@@ -1002,7 +1020,7 @@ process_option_LTS(2):-
     single_read_string(Fab2),
     valid_fact_name(Fab2),
     findall((Path,Total_Consumption),path(Fab1,Fab2,Path,_,_,_,_,Total_Consumption),All_Paths_Consumption), 
-    min_consumption(All_Paths_Consumption,Min_Consumption_Path,Min_Consumption),
+    min_consumption_path(All_Paths_Consumption,Min_Consumption_Path,Min_Consumption),
     format('Route:~n'),
     forall(member((Transport,Method,FabX,FabY,_), Min_Consumption_Path), 
         (format('~w: ~w ~w -> ~w ',
@@ -1024,7 +1042,7 @@ process_option_LTS(3):-
     single_read_string(Fab2),
     valid_fact_name(Fab2),
     findall((Path,Total_Emitions),path(Fab1,Fab2,Path,_,_,Total_Emitions,_,_),All_Paths_Emitions), 
-    min_Emitions(All_Paths_Emitions,Min_Emitions_Path,Min_Emitions),
+    min_Emitions_path(All_Paths_Emitions,Min_Emitions_Path,Min_Emitions),
     format('Route:~n'),
     forall(member((Transport,Method,FabX,FabY,_), Min_Emitions_Path), 
         (format('~w: ~w ~w -> ~w ',
@@ -1046,7 +1064,7 @@ process_option_LTS(4):-
     single_read_string(Fab2),
     valid_fact_name(Fab2),
     findall((Path,Total_Price),path(Fab1,Fab2,Path,_,_,_,Total_Price,_),All_Paths_Price), 
-    min_Price(All_Paths_Price,Min_Price_Path,Min_Price),
+    min_Price_path(All_Paths_Price,Min_Price_Path,Min_Price),
     format('Route:~n'),
     forall(member((Transport,Method,FabX,FabY,_), Min_Price_Path), 
         (format('~w: ~w ~w -> ~w ',
@@ -1068,7 +1086,7 @@ process_option_LTS(5):-
     single_read_string(Fab2),
     valid_fact_name(Fab2),
     findall((Path,Total_Time),path(Fab1,Fab2,Path,_,Total_Time,_,_,_),All_Paths_Time), 
-    min_Time(All_Paths_Time,Min_Time_Path,Min_Time),
+    min_Time_path(All_Paths_Time,Min_Time_Path,Min_Time),
     format('Route:~n'),
     forall(member((Transport,Method,FabX,FabY,_), Min_Time_Path), 
         (format('~w: ~w ~w -> ~w ',

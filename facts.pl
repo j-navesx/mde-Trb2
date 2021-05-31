@@ -1,5 +1,8 @@
 :- dynamic fact/2.
 
+%Fábricas
+%fact(factory_name, products_list)
+
 fact(lisboa, [texteis, borracha]).
 fact(madrid, [aluminio, carro_seat]).
 fact(paris, [chip_1, motor_eletrico_1]).

@@ -27,3 +27,4 @@ route(ups, truck1, oslo, jamtland, 587).
 route(dhl, truck2, oslo, jamtland, 587).
 route(ups, truck1, lombardy, campania, 799).
 
+
