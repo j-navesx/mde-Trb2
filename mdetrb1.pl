@@ -463,7 +463,7 @@ alter_fact_menu:-
     valid_fact_name(Fact_name),
     write('1 -> Add factory product'),nl,
     write('2 -> Remove factory product'),nl,
-    readoption(OP),
+    single_read_numb(OP),
     fact(Fact_name,Prod_list),
     process_option_AF(Fact_name, Prod_list, OP),
     !.
@@ -501,7 +501,7 @@ alter_prod_menu:-
     valid_prod_name(Fact_name,Prod_name),
     write('1 -> Add product material'),nl,
     write('2 -> Remove product material'),nl,
-    readoption(OP),
+    single_read_numb(OP),
     prod(Prod_name,Fact_name,Stock,Mat_list),
     process_option_APD(Prod_name,Fact_name,Stock,Mat_list,OP),
     !.
@@ -565,7 +565,7 @@ alter_transp_menu:-
     valid_transp_name(Transp_name),
     write('1 -> Add new transport method'),nl,
     write('2 -> Remove existing transport method'),nl,
-    readoption(OP),
+    single_read_numb(OP),
     transp(Transp_name,Transp_list),
     process_option_AT(Transp_name,Transp_list,OP),
     !.
