@@ -334,6 +334,7 @@ add_transp:-
 add_route:-
     write('Enter transporter name: '),
     single_read_string(Transp_name),
+    valid_transp_name(Transp_name),
     write('Enter transport method name: '),
     single_read_string(Transp_type),
     is_method_Registered(Transp_name,Transp_type),
