@@ -412,8 +412,8 @@ rmv_transp:-
     single_read_string(Transp_name),
     valid_transp_name(Transp_name),
     retract(transp(Transp_name,_)),
-    findall((route(Transp_name,_,_,_,_)), (route(Transp_name,_,_,_,_)), List),
-    forall(member(route(Transp_name,_,_,_,_),List),(retract(route(Transp_name,_,_,_,_)))),
+    ((findall((route(Transp_name,_,_,_,_)), (route(Transp_name,_,_,_,_)), List),
+    forall(member(route(Transp_name,_,_,_,_),List),(retract(route(Transp_name,_,_,_,_)))));true),
     !.
 rmv_transp:-
     rmv_transp.
@@ -554,6 +554,8 @@ process_option_AT(Transp_name,Transp_list,2):-
     single_read_string(Rmv_Method),
     is_member(Transp_list,[Rmv_Method,_,_,_,_]),
     delete(Transp_list,[Rmv_Method,_,_,_,_],New_Transp_list),
+    ((findall((route(Transp_name,Rmv_Method,_,_,_)), (route(Transp_name,Rmv_Method,_,_,_)), List),
+    forall(member(route(Transp_name,Rmv_Method,_,_,_),List),(retract(route(Transp_name,Rmv_Method,_,_,_)))));true),
     alter_transp(Transp_name,New_Transp_list).
 
 alter_transp_menu:-
