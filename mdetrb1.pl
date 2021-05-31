@@ -1158,7 +1158,7 @@ process_main_menu(Op):-
 
 add_menu(Op):-
     nl,
-    write('Menu para adicionar cenas'), 
+    write('Menu para adicionar'), 
     nl,
     write('1 -> Adicionar fabrica a cadeia/rede'),nl,
     write('2 -> Adicionar stock a uma fabrica'),nl,
@@ -1182,7 +1182,7 @@ process_add_menu(Op):-
 
 alter_menu(Op):-
     nl,
-    write('Menu para alterar cenas'), 
+    write('Menu para alterar'), 
     nl,
     write('1 -> Alterar fabrica da cadeia/rede'),nl,
     write('2 -> Alterar stock numa fabrica'),nl,
@@ -1207,7 +1207,7 @@ process_alter_menu(Op):-
 
 rmv_menu(Op):-
     nl,
-    write('Menu para remover cenas'), 
+    write('Menu para remover'), 
     nl,
     write('1 -> Remover fabrica da cadeia/rede'),nl,
     write('2 -> Remover stock numa fabrica'),nl,
