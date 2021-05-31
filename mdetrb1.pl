@@ -537,7 +537,7 @@ alter_transp(Transp_name,New_Transp_list):-
 process_option_AT(Transp_name,Transp_list,1):-
     write('Enter new transport method name: '),
     single_read_string(Method),
-    fail_if_member(Transp_list,[Method,_,_,_]),
+    fail_if_member(Transp_list,[Method,_,_,_,_]),
     write('Enter average transport speed: '),
     single_read_numb(Speed),
     write('Enter average transport emitions: '),
@@ -552,8 +552,8 @@ process_option_AT(Transp_name,Transp_list,1):-
 process_option_AT(Transp_name,Transp_list,2):-
     write('Enter transport method name to remove: '),
     single_read_string(Rmv_Method),
-    is_member(Transp_list,[Rmv_Method,_,_,_]),
-    delete(Transp_list,[Rmv_Method,_,_,_],New_Transp_list),
+    is_member(Transp_list,[Rmv_Method,_,_,_,_]),
+    delete(Transp_list,[Rmv_Method,_,_,_,_],New_Transp_list),
     alter_transp(Transp_name,New_Transp_list).
 
 alter_transp_menu:-
